@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Trợ lý Toán 5</title>
+  <style>
+    body { font-family: Arial; background: #001028; color: white; padding: 30px; }
+    textarea { width: 100%; height: 100px; border-radius: 10px; padding: 10px; font-size: 16px; }
+    button { padding: 10px 20px; font-size: 16px; margin-top: 10px; border: none; border-radius: 8px; cursor: pointer; background: #00bfff; color: white; }
+    #response { background: #111; padding: 15px; border-radius: 8px; margin-top: 15px; }
+  </style>
+</head>
+<body>
+  <h2>💬 Trợ lý Toán 5</h2>
+  <textarea id="userMsg" placeholder="Nhập câu hỏi..."></textarea><br>
+  <button id="sendBtn">Gửi</button>
+  <div id="response"></div>
+
+  <script>
+    const sendBtn = document.getElementById('sendBtn');
+    const input = document.getElementById('userMsg');
+    const responseDiv = document.getElementById('response');
+
+    sendBtn.addEventListener('click', async () => {
+      const message = input.value.trim();
+      if (!message) return alert('Vui lòng nhập câu hỏi.');
+
+      responseDiv.innerHTML = '⏳ Đang gửi...';
+      try {
+        const res = await fetch('http://localhost:3000/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message })
+        });
+
+        const data = await res.json();
+        responseDiv.innerHTML = data.reply || 'Không nhận được phản hồi từ server.';
+      } catch (err) {
+        console.error(err);
+        responseDiv.innerHTML = '⚠️ Lỗi kết nối tới server.';
+      }
+    });
+  </script>
+</body>
+</html>
