@@ -45,7 +45,7 @@ app.post('/api/chat', async (req, res) => {
 
     // --- Tạo prompt cho model ---
     // --- Tạo prompt cho model (tùy chỉnh cho học sinh lớp 5) ---
-cconst systemPrompt = ``;
+const systemPrompt = ``;
 
 
 const userPrompt = `
@@ -104,3 +104,4 @@ res.json({ reply });
 });
 
 app.listen(PORT, ()=> console.log(`Proxy server running on http://localhost:${PORT}`));
+
