@@ -23,18 +23,45 @@ app.use(cors()); // cho phép truy cập từ local
 app.use(express.json());
 
 app.post('/api/chat', async (req, res) => {
-  const userMsg = (req.body.message || '').toString().trim();
-  if (!userMsg) return res.status(400).json({ error: 'No message' });
-
   try {
+    const userMsg = (req.body.message || '').toString().trim();
+    const context = Array.isArray(req.body.context) ? req.body.context : null; // [{id, text, options}]
+    const answers = Array.isArray(req.body.answers) ? req.body.answers : null; // [0,null,2,...] or undefined
+
+    if (!userMsg) return res.status(400).json({ error: 'No message' });
+
+    // --- Tạo văn bản tóm tắt ngữ cảnh (những câu học sinh đang làm) ---
+    let contextText = '';
+    if (context && context.length) {
+      contextText += 'Các câu hỏi học sinh đang làm (dạng tóm tắt):\n';
+      context.forEach((q, idx) => {
+        const opts = Array.isArray(q.options) ? q.options.join(' | ') : '';
+        // nếu answers có giá trị cho câu đó, thêm trạng thái
+        const ans = (answers && typeof answers[idx] === 'number') ? ` (HS chọn: ${String.fromCharCode(65+answers[idx])})` : '';
+        contextText += `${q.id || (idx+1)}. ${q.text}  [${opts}]${ans}\n`;
+      });
+      contextText += '\n';
+    }
+
+    // --- Tạo prompt cho model ---
+    // --- Tạo prompt cho model (tùy chỉnh cho học sinh lớp 5) ---
+cconst systemPrompt = ``;
+
+
+const userPrompt = `
+${contextText}
+Học sinh hỏi: "${userMsg}"
+Hãy trả lời thật ngắn gọn, rõ ràng, đúng cấp tiểu học (Toán lớp 5).
+`;
+
     const payload = {
       model: "gpt-4o-mini",
       messages: [
-        { role: 'system', content: 'Bạn là trợ lý giáo viên Toán lớp 5, giải thích ngắn gọn, đơn giản, từng bước.' },
-        { role: 'user', content: userMsg }
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
       ],
-      max_tokens: 400,
-      temperature: 0.2
+      max_tokens: 600,
+      temperature: 0.15
     };
 
     const apiRes = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -53,8 +80,23 @@ app.post('/api/chat', async (req, res) => {
     }
 
     const j = await apiRes.json();
-    const reply = j.choices && j.choices[0] && j.choices[0].message ? j.choices[0].message.content : 'Xin lỗi, không có phản hồi.';
-    res.json({ reply });
+    let reply = j.choices?.[0]?.message?.content || 'Xin lỗi, tôi chưa có phản hồi.';
+
+// ⚙️ Làm sạch ký hiệu toán học và các ký tự khó đọc
+reply = reply
+  .replace(/\\\[.*?\\\]/gs, '')          // bỏ các khối toán kiểu \[ ... \]
+  .replace(/\\\((.*?)\\\)/g, '$1')       // bỏ dấu \( \)
+  .replace(/\\text\{(.*?)\}/g, '$1')     // bỏ \text{...}
+  .replace(/\*\*(.*?)\*\*/g, '$1')       // bỏ **in đậm**
+  .replace(/\*/g, '')                    // bỏ dấu * đơn lẻ
+  .replace(/\$(.*?)\$/g, '$1')           // bỏ ký hiệu LaTeX $...$
+  .replace(/\\[a-zA-Z]+/g, '')           // bỏ các lệnh \alpha, \frac, v.v.
+  .replace(/\s+/g, ' ')                  // gọn khoảng trắng
+  .trim();
+
+// Gửi phản hồi về client
+res.json({ reply });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
