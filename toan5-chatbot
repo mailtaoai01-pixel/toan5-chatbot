@@ -1,127 +1,2446 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Trợ lý Toán 5</title>
-  <style>
-    body { font-family: Arial; background: #001028; color: white; padding: 30px; }
-    textarea { width: 100%; height: 100px; border-radius: 10px; padding: 10px; font-size: 16px; }
-    button { padding: 10px 20px; font-size: 16px; margin-top: 10px; border: none; border-radius: 8px; cursor: pointer; background: #00bfff; color: white; }
-    #response { background: #111; padding: 15px; border-radius: 8px; margin-top: 15px; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Toán 5 — Luyện theo tuần (Trợ lý AI)</title>
+<style>
+    :root{
+  --bg1: #e3f2fd;         /* xanh nhạt */
+  --bg2: #bbdefb;         /* xanh lam nhạt */
+  --card: #ffffffcc;       /* xanh lam đậm */
+  --accent: #0288d1;       /* xanh lam đậm */
+  --muted: #455a64;        /* xám chữ phụ */
+  --glass: rgba(255,255,255,0.6);
+  }
+  html,body {
+  height:100%;
+  margin:0;
+  font-family: "Inter", "Segoe UI", Roboto, Arial;
+  background:
+    radial-gradient(circle at 10% 20%, var(--bg1), var(--bg2) 80%),
+    url('https://www.transparenttextures.com/patterns/pw-maze-white.png'); /* họa tiết nhẹ */
+  color:#0d1b2a;
+  background-attachment: fixed;
+  background-size: cover;
+}
+
+/* Giữ các card nổi bật hơn trên nền sáng */
+.card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.8));
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  color: #0d1b2a;
+}
+
+/* Cập nhật màu nút chính */
+button.primary {
+  background: linear-gradient(90deg, var(--accent), #42a5f5);
+  color: #fff;
+  font-weight:600;
+  border:none;
+  box-shadow: 0 2px 6px rgba(2,136,209,0.4);
+}
+
+button.primary:hover {
+  filter: brightness(1.1);
+}
+
+/* Câu hỏi và lựa chọn nổi rõ trên nền sáng */
+.question {
+  background: #f5f9ff;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+.choice {
+  background: #fff;
+  color: #333;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+.choice.selected {outline: 2px solid rgba(2,136,209,0.3);}
+.correct {background-color:#4CAF50!important; color:#fff;}
+.incorrect {background-color:#f44336!important; color:#fff;}
+  .container{max-width:1200px; margin:28px auto; padding:20px; display:grid; grid-template-columns: 1fr 360px; gap:20px;}
+  header{grid-column:1/3; display:flex; justify-content:space-between; align-items:center; gap:16px;}
+  h1{margin:0; font-size:20px; letter-spacing:0.2px;}
+  .sub{color:var(--muted); font-size:13px;}
+
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:18px; border-radius:12px; box-shadow: 0 6px 20px rgba(2,6,23,0.6);}
+  .controls{display:flex; gap:12px; align-items:center; margin-bottom:12px;}
+  select, button, input[type="number"]{background:var(--glass); color:var(--muted); border:1px solid rgba(255,255,255,0.03); padding:10px 12px; border-radius:8px; font-size:14px;}
+  button.primary{background:linear-gradient(90deg,var(--accent), #3b82f6); color:#012; font-weight:600; border:none;}
+  .question-list{margin-top:12px; display:flex; flex-direction:column; gap:12px; max-height:58vh; overflow:auto;}
+  .question{background:rgba(255,255,255,0.02); padding:12px; border-radius:10px; display:flex; gap:12px; align-items:flex-start;}
+  .q-left{min-width:44px; background:#071833; color:var(--accent); border-radius:8px; padding:8px 10px; font-weight:700;}
+  .q-body{flex:1;}
+  .choices{display:flex; flex-direction:column; gap:8px; margin-top:8px;}
+  .choice{background:#071026; padding:8px; border-radius:8px; cursor:pointer; border:1px solid transparent; color:#e6eef6;}
+  .choice:hover{border-color:rgba(255,255,255,0.04);}
+  .choice.selected{outline:2px solid rgba(6,182,212,0.12);}
+
+  .footer-actions{display:flex; justify-content:space-between; align-items:center; margin-top:14px;}
+  .score{font-weight:700; color:var(--accent);}
+
+  .assistant-panel{display:flex; flex-direction:column; gap:12px; height:calc(100vh - 120px); position:sticky; top:24px;}
+  .assistant-card{display:flex; gap:12px; align-items:center; padding:12px; border-radius:12px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));}
+  .avatar {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:none;
+  box-shadow:none;
+  position:relative;
+  overflow:visible;
+}
+  .avatar .face{width:56px; height:56px; border-radius:12px; background:rgba(255,255,255,0.12); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:20px; transform-origin:center;}
+  .avatar{animation:float 3.6s ease-in-out infinite;}
+  @keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-6px)}100%{transform:translateY(0)}}
+
+  .assistant-meta{flex:1;}
+  .assistant-meta .name{font-size:16px; font-weight:700;}
+  .assistant-meta .desc{font-size:13px; color:var(--muted);}
+
+  .chat{flex:1; display:flex; flex-direction:column; gap:8px; overflow:hidden;}
+  .chat-window{flex:1; overflow:auto; padding:12px; border-radius:10px; background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.03));}
+  .msg{margin-bottom:10px; display:flex; gap:8px;}
+  .msg.user{justify-content:flex-end;}
+  .bubble{max-width:78%; padding:8px 12px; border-radius:12px; background:#052033; color:#dff7ff; font-size:14px;}
+  .bubble.user{background:#074b59; color:#cfeeea;}
+  .chat-input{display:flex; gap:8px; margin-top:6px;}
+  textarea.chat-text{flex:1; min-height:54px; border-radius:10px; padding:10px; background:transparent; border:1px solid rgba(255,255,255,0.04); color:inherit;}
+  .small{font-size:12px; color:var(--muted);}
+
+  @media (max-width:1024px){ .container{grid-template-columns:1fr; padding:12px;} .assistant-panel{position:relative; height:auto;} }
+  .option-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 6px;
+    background-color: #222;
+    color: #fff;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .option-btn:hover {
+    background-color: #333;
+  }
+/* ==== Số thứ tự câu hỏi: nền xanh, số đỏ ==== */
+.q-left {
+  min-width: 44px;
+  background: #fff8e1;        /* xanh */
+  color: #d32f2f;             /* đỏ tươi */
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+/* ==== Làm sáng các đáp án lựa chọn ==== */
+.choice {
+  background: #f0f0f0;         /* xám nhạt */
+  color: #222;                 /* chữ đậm */
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Khi rê chuột vào đáp án */
+.choice:hover {
+  background: #e0e0e0;
+  border-color: #bbb;
+}
+
+/* Khi học sinh chọn */
+.choice.selected {
+  outline: 2px solid rgba(2,136,209,0.4);
+  background: #e3f2fd;
+  color: #01579b;
+}
+
+/* Khi đúng – sai */
+.choice.correct {
+  background-color: #4CAF50 !important;
+  color: #fff;
+}
+.choice.incorrect {
+  background-color: #f44336 !important;
+  color: #fff;
+}
+
+  /* Khi học sinh chọn */
+  .selected {
+    background-color: #ffcc00 !important; /* vàng sáng */
+    color: #000;
+    border-color: #ffeb3b;
+    box-shadow: 0 0 10px 2px rgba(255, 235, 59, 0.7);
+  }
+
+  /* Đáp án đúng */
+  .correct {
+    background-color: #4CAF50 !important; /* xanh */
+    color: #fff;
+  }
+
+  /* Đáp án sai */
+  .incorrect {
+    background-color: #f44336 !important; /* đỏ */
+    color: #fff;
+  }
+ 
+/* ===== NỀN TRẮNG KEM ÁNH VÀNG DỊU NHẸ ===== */
+html, body {
+  background: linear-gradient(120deg, #ffffff, #fffef6, #fffdf0);
+  background-size: 400% 400%;
+  animation: gradientMove 25s ease infinite;
+  color: #1a1a1a;
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+/* ===== TÙY CHỈNH MÀU NÚT & CÂU HỎI ===== */
+
+/* Màu nút chọn tuần (xanh chuối tươi) */
+button.primary,
+#generateBtn {
+  background: linear-gradient(90deg, #c6ff00, #aeea00);
+  color: #2e3d00;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  box-shadow: 0 3px 8px rgba(173, 255, 47, 0.4);
+  transition: all 0.2s ease;
+}
+button.primary:hover,
+#generateBtn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 12px rgba(173, 255, 47, 0.6);
+}
+
+/* Nút Reset màu đỏ nhạt */
+#resetBtn {
+  background: linear-gradient(90deg, #ffcdd2, #ef9a9a);
+  color: #7f0000;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  box-shadow: 0 3px 8px rgba(244, 67, 54, 0.25);
+  transition: all 0.2s ease;
+}
+#resetBtn:hover {
+  background: linear-gradient(90deg, #ef9a9a, #e57373);
+  box-shadow: 0 4px 10px rgba(244, 67, 54, 0.4);
+}
+
+/* Câu hỏi in đậm, rõ hơn */
+.question {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1a1a1a;
+  line-height: 1.5;
+}
+/* ===== Ô CHỌN TUẦN (SELECT) XANH ĐẬM ===== */
+select {
+  background: linear-gradient(90deg, #1976d2, #2196f3);
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3);
+  appearance: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+select:hover {
+  background: linear-gradient(90deg, #1565c0, #1e88e5);
+  box-shadow: 0 4px 10px rgba(25, 118, 210, 0.4);
+}
+
+/* Khi menu thả xuống (các tuần) mở ra */
+select option {
+  background: #e3f2fd;
+  color: #0d47a1;
+  font-weight: 600;
+}
+
+/* ===== CARD NỔI NHẸ ===== */
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+}
+
+/* ===== NÚT ĐỘNG ===== */
+button.primary {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.3s ease;
+}
+button.primary:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(2,136,209,0.4);
+  filter: brightness(1.1);
+}
+
+/* ===== SỐ CÂU HỎI RUNG NHẸ ===== */
+.q-left {
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+  100% { transform: translateY(0); }
+}
+/* === Nút chatbox (bản nâng cao) === */
+#sendChat {
+  background: linear-gradient(90deg, #06b6d4, #3b82f6);
+  color: #012;
+  font-weight: 700;
+  font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+  transition: all 0.25s ease;
+}
+#sendChat:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(59, 130, 246, 0.4);
+}
+
+/* Hai nút voice và clear */
+#voiceBtn, #clearChat {
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 8px 10px;
+  transition: all 0.25s ease;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* 🎤 Voice button - bình thường và khi bấm */
+#voiceBtn {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff9c4; /* vàng nhạt nhẹ */
+}
+#voiceBtn:hover {
+  background: rgba(255, 255, 200, 0.25);
+  color: #fff;
+}
+/* Khi đang ghi âm (active) → vàng nổi */
+#voiceBtn.active {
+  background: #ffeb3b;
+  color: #333;
+  box-shadow: 0 0 10px 2px rgba(255, 235, 59, 0.6);
+}
+
+/* 🗑 Clear button - sáng hơn */
+#clearChat {
+  background: rgba(255,255,255,0.25);
+  color: #f1f5f9;
+}
+#clearChat:hover {
+  background: rgba(255,255,255,0.4);
+  color: #fff;
+}
+
+/* Hiệu ứng bấm giữ */
+#voiceBtn:active, #clearChat:active, #sendChat:active {
+  transform: scale(0.96);
+}
+/* 🎤 Voice button – màu vàng nhạt nổi rõ */
+#voiceBtn {
+  background: #fff8e1;        /* vàng nhạt sáng hơn */
+  color: #d17f00;             /* chữ vàng cam đậm */
+  border: 1px solid #fdd835;
+  font-weight: 600;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+#voiceBtn:hover {
+  background: #ffecb3;
+  color: #a15f00;
+}
+
+/* Khi đang ghi âm (active) → vàng nổi bật hơn */
+#voiceBtn.active {
+  background: #ffeb3b;
+  color: #333;
+  box-shadow: 0 0 10px 2px rgba(255, 235, 59, 0.6);
+}
+
+/* 🗑 Clear button – màu xám nhạt */
+#clearChat {
+  background: #eceff1;        /* xám nhạt rõ ràng */
+  color: #37474f;             /* chữ xám đậm */
+  border: 1px solid #cfd8dc;
+  font-weight: 600;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+#clearChat:hover {
+  background: #cfd8dc;
+  color: #000;
+}
+</style>
 </head>
 <body>
-  <h2>💬 Trợ lý Toán 5</h2>
-  <textarea id="userMsg" placeholder="Nhập câu hỏi..."></textarea><br>
-  <button id="sendBtn">Gửi</button>
-  <div id="response"></div>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Toán 5 — Luyện tập theo tuần (Bộ sách Chân Trời Sáng Tạo)</h1>
+        <div class="sub">Ứng dụng luyện tập và trợ giúp học sinh</div>
+      </div>
+      <div class="small">Giáo viên: Phạm Thái Sang <strong>  </strong> &nbsp; • &nbsp; Lớp 5</div>
+    </header>
 
-  <script>
-    const sendBtn = document.getElementById('sendBtn');
-    const input = document.getElementById('userMsg');
-    const responseDiv = document.getElementById('response');
+    <main class="card">
+	<!-- Form nhập tên học sinh -->
+<div id="login-screen" style="margin-bottom:12px;">
+  <label for="studentName">Nhập họ và tên của em:</label>
+  <input type="text" id="studentName" placeholder="Họ và tên của em" style="padding:6px 8px; border-radius:6px; border:1px solid #ccc;">
+  
+</div>
 
-    sendBtn.addEventListener('click', async () => {
-      const message = input.value.trim();
-      if (!message) return alert('Vui lòng nhập câu hỏi.');
+      <div class="controls">
+        <label for="week">Chọn tuần:</label>
+        <select id="week">
+          <option value="1">Tuần 1</option>
+          <option value="2">Tuần 2</option>
+          <option value="3">Tuần 3</option>
+          <option value="4">Tuần 4</option>
+          <option value="5">Tuần 5</option>
+		  <option value="6">Tuần 6</option>
+		  <option value="7">Tuần 7</option>
+		  <option value="8">Tuần 8</option>
+		  <option value="9">Tuần 9</option>
+		  <option value="10">Tuần 10</option>
+		  <option value="11">Tuần 11</option>
+		  <option value="12">Tuần 12</option>
+		  <option value="13">Tuần 13</option>
+		  <option value="13">Tuần 14</option>
+		  <option value="15">Tuần 15</option>
+		  <option value="16">Tuần 16</option>
+		  <option value="17">Tuần 17</option>
+		  <option value="18">Tuần 18</option>
+		  <option value="19">Tuần 19</option>
+		  <option value="20">Tuần 20</option>
+		  <option value="21">Tuần 21</option>
+		  <option value="22">Tuần 22</option>
+		  <option value="23">Tuần 23</option>
+		  <option value="24">Tuần 24</option>
+		  <option value="25">Tuần 25</option>
+		  <option value="26">Tuần 26</option>
+		  <option value="27">Tuần 27</option>
+		  <option value="28">Tuần 28</option>
+		  <option value="29">Tuần 29</option>
+		  <option value="30">Tuần 30</option>
+		  <option value="31">Tuần 31</option>
+		  <option value="32">Tuần 32</option>
+		  <option value="33">Tuần 33</option>
+		  <option value="34">Tuần 34</option>
+		  <option value="35">Tuần 35</option>
+        </select>
+        <button class="primary" id="genBtn">🎯 Tạo bài tập tuần</button>
+        <button id="resetBtn" title="Xóa kết quả hiện tại">⟲ Reset</button>
+      </div>
 
-      responseDiv.innerHTML = '⏳ Đang gửi...';
-      try {
-        const res = await fetch('http://localhost:3000/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message })
-        });
+      <div id="info" class="small">Chọn tuần và nhấn "Tạo bài tập tuần" để làm 10 câu trắc nghiệm</div>
 
-        const data = await res.json();
-        responseDiv.innerHTML = data.reply || 'Không nhận được phản hồi từ server.';
-      } catch (err) {
-        console.error(err);
-        responseDiv.innerHTML = '⚠️ Lỗi kết nối tới server.';
-      }
-    });
-  </script>
-</body>
-</html>
+      <div class="question-list" id="qList"></div>
+
+      <div class="footer-actions">
+        <div class="small">   </div>
+        <div>
+          <span class="score" id="scoreText">Điểm: 0/0</span>
+          <button id="checkBtn" class="primary">Nộp & Chấm</button>
+        </div>
+      </div>
+    </main>
+    <aside class="assistant-panel">
+      <div class="assistant-card card">
+        <div class="avatar" aria-hidden>
+          <div class="ai-icon">
+  <img src="avata.gif" alt="Trợ lý AI Toán 5" style="width:60px; height:110px ; border:none; border-radius:0; object-fit:contain;" style="object-fit:cover;">
+</div>
+
+        </div>
+        <div class="assistant-meta">
+          <div class="name">Trợ lý Toán 5</div>
+          <div class="desc">Bạn ơi không hiểu, hỏi mình ngay nhé!</div>
+        </div>
+      </div>
+
+      <div class="card chat">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="font-weight:700">Khung Chat với Trợ lý AI</div>
+          <div class="small">Kết nối: <span id="connState">online</span></div>
+        </div>
+
+        <div id="chatWindow" class="chat-window" aria-live="polite"></div>
+
+      <div class="chat-input">
+  <textarea id="chatText" class="chat-text" placeholder="Học sinh hỏi: 'Làm sao để tìm diện tích hình chữ nhật?'"></textarea>
+  
+  <div style="display:flex; flex-direction:column; gap:8px; align-items:stretch;">
+    <!-- Hàng 1: nút GỬI -->
+    <button id="sendChat" class="primary" style="font-size:16px; padding:10px;">Gửi 💬</button>
+    
+    <!-- Hàng 2: nút Voice + Xóa -->
+    <div style="display:flex; gap:8px; justify-content:center;">
+      <button id="voiceBtn" title="Nói để nhập" style="flex:1;">🎤 Nói</button>
+      <button id="clearChat" title="Xóa khung chat" style="flex:1;">🗑 Xóa</button>
+    </div>
+    
+    <div class="small" id="voiceStatus"></div>
+  </div>
+</div>
 
 
-{
-  "name": "toan5-chatbot",
-  "version": "1.0.0",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "node-fetch": "^3.3.2",
-    "dotenv": "^16.0.3",
-    "cors": "^2.8.5"
-  }
+
+<script>
+/* --- Question bank: tuần 1..5 (mẫu theo chương trình Toán 5) --- */
+const templates = {
+  /* ===== TUẦN 1: Ôn tập số tự nhiên và các phép tính ===== */
+week1: [
+  // Nhóm 1: Số tự nhiên – phép tính (10 câu)
+  { text: "Tính: 245 + 378 =", options:["623","613","625","620"], correct: 0 },
+  { text: "Tính: 984 – 567 =", options:["417","427","407","437"], correct: 0 },
+  { text: "Tính: 125 × 8 =", options:["1000","1020","980","990"], correct: 0 },
+  { text: "Tính: 144 ÷ 12 =", options:["12","11","13","10"], correct: 0 },
+  { text: "Giá trị biểu thức: 250 + 375 – 125 =", options:["500","510","495","505"], correct: 0 },
+  { text: "Tính: 432 × 5 =", options:["2160","2150","2170","2200"], correct: 0 },
+  { text: "Tính: 108 ÷ 9 =", options:["12","11","13","10"], correct: 0 },
+  { text: "Giá trị: (250 + 150) × 2 =", options:["800","750","700","850"], correct: 0 },
+  { text: "Tính nhanh: 500 – 275 =", options:["225","225","230","220"], correct: 0 },
+  { text: "Giá trị: 360 ÷ 12 + 45 =", options:["75","80","70","78"], correct: 0 },
+
+  // Nhóm 2: Phân số – nhận biết, so sánh, sắp xếp (10 câu)
+  { text: "So sánh: 3/4 .... 2/3", options:[">","<","=","Không xác định"], correct: 0 },
+  { text: "Sắp xếp theo thứ tự từ bé đến lớn: 1/2, 3/4, 2/3", options:["1/2, 2/3, 3/4","1/2, 3/4, 2/3","2/3, 1/2, 3/4","3/4, 2/3, 1/2"], correct: 0 },
+  { text: "Phân số bằng 1/2 là:", options:["2/4","3/5","3/4","4/5"], correct: 0 },
+  { text: "Phân số bằng 3/6 là:", options:["1/2","1/3","2/3","1/4"], correct: 0 },
+  { text: "Tìm số trung gian giữa 1/4 và 3/4:", options:["1/2","2/3","1/3","3/4"], correct: 0 },
+  { text: "Biểu thức: 2/3 + 1/6 =", options:["5/6","2/3","1/2","4/6"], correct: 0 },
+  { text: "Biểu thức: 3/4 – 1/2 =", options:["1/4","1/2","1/3","2/4"], correct: 0 },
+  { text: "Biểu thức: 2/3 × 3/4 =", options:["1/2","1/3","2/5","1/4"], correct: 0 },
+  { text: "Biểu thức: 3/5 ÷ 3 =", options:["1/5","1/3","1/4","2/5"], correct: 0 },
+  { text: "Tính: 2/3 + 1/6 – 1/4 =", options:["7/12","1/2","5/12","2/3"], correct: 0 },
+
+  // Nhóm 3: Số tự nhiên – vận dụng (10 câu)
+  { text: "Giá trị của chữ số 5 trong số 45 382 là:", options:["5 nghìn","5 trăm","5 chục","5 đơn vị"], correct: 0 },
+  { text: "Giá trị của biểu thức: 300 + 120 × 2 =", options:["540","840","420","760"], correct: 0 },
+  { text: "Số? ...... + 3 = 21", options:["18","24","17","19"], correct: 0 },
+  { text: "Số? ...... - 7 = 25", options:["32","27","18","30"], correct: 0 },
+  { text: "Số? ...... × 6 = 54", options:["9","8","7","6"], correct: 0 },
+  { text: "Số? ...... ÷ 5 = 9", options:["45","14","25","15"], correct: 0 },
+  { text: "Tổng 345 và 678 là:", options:["1023","1013","1033","1020"], correct: 0 },
+  { text: "Hiệu 902 và 478 là:", options:["424","434","452","412"], correct: 0 },
+  { text: "Kết quả của phép tính 125 × 4 =", options:["500","425","450","400"], correct: 0 },
+  { text: "Số nào chia hết cho 9: 135, 144, 152?", options:["135","144","152","Không có"], correct: 0 }
+],
+
+  /* ===== TUẦN 2: Ôn tập và bổ sung về phân số ===== */
+  week2: [
+    { text: "Phân số nào bằng 1/2?", options:["2/4","3/4","1/3","4/6"], correct: 0 },
+    { text: "Rút gọn phân số 6/8 ta được:", options:["3/4","6/8","2/3","4/3"], correct: 0 },
+    { text: "Phân số 4/5 có tử số là:", options:["4","5","9","1"], correct: 0 },
+    { text: "Phân số 4/5 có mẫu số là:", options:["5","4","9","1"], correct: 0 },
+    { text: "Phân số lớn hơn 3/5 là:", options:["4/5","2/5","1/5","3/6"], correct: 0 },
+    { text: "Phân số 10/15 rút gọn được:", options:["2/3","3/2","5/3","3/5"], correct: 0 },
+    { text: "Phân số nào nhỏ nhất: 1/3, 1/4, 1/2?", options:["1/4","1/3","1/2","3/4"], correct: 0 },
+    { text: "Tổng 1/4 + 1/4 =", options:["1/2","1/4","2/4","3/4"], correct: 0 },
+    { text: "Hiệu 3/4 - 1/4 =", options:["1/2","2/4","3/4","1/4"], correct: 0 },
+    { text: "Phân số nào bằng 6/9?", options:["2/3","1/3","3/2","3/4"], correct: 0 },
+    { text: "Phân số tối giản của 8/12 là:", options:["2/3","3/2","4/6","1/3"], correct: 0 },
+    { text: "So sánh 2/5 và 3/5:", options:["2/5 < 3/5","2/5 = 3/5","2/5 > 3/5","Không so sánh được"], correct: 0 },
+    { text: "Phân số 5/10 và 1/2 là:", options:["Bằng nhau","5/10 lớn hơn","1/2 lớn hơn","Không so sánh được"], correct: 0 },
+    { text: "Số? ...... /3 = 2/3", options:["2","3","4","1"], correct: 0 },
+    { text: "Phân số nào lớn hơn 1?", options:["5/4","3/4","4/5","1/2"], correct: 0 },
+    { text: "Tổng 1/3 + 1/6 =", options:["1/2","2/3","1/6","1/4"], correct: 0 },
+    { text: "Hiệu 5/6 - 1/3 =", options:["1/2","2/3","3/6","4/6"], correct: 0 },
+    { text: "Phân số có tử số nhỏ hơn mẫu số là:", options:["3/4","4/3","5/4","2/1"], correct: 0 },
+    { text: "Phân số nào bằng 25/100?", options:["1/4","2/5","3/8","1/2"], correct: 0 },
+	
+  // Nhóm 1: Phân số thập phân – nhận biết, đổi, so sánh (12 câu)
+
+  { text: "So sánh 6/10 .... 3/5:", options:["=","<",">","Không xác định"], correct: 0 },
+  { text: "Phân số 8/10 bằng phân số nào?", options:["4/5","3/4","2/5","3/5"], correct: 0 },
+ 
+  { text: "Số 60/100 = ?", options:["3/5","2/3","5/6","1/2"], correct: 0 },
+  { text: "Số 2/10 = ?", options:["1/5","1/2","2/5","1/10"], correct: 0 },
+ 
+  // Nhóm 2: Tỉ số – cơ bản, thực hành (10 câu)
+  { text: "Tỉ số 2:5 bằng phân số nào?", options:["2/5","5/2","2/7","5/3"], correct: 0 },
+  { text: "Tỉ số 4:3 = ?", options:["4/3","3/4","1/3","3/5"], correct: 0 },
+  { text: "Tỉ số 7:14 = ?", options:["1/2","1/3","2/7","7/14"], correct: 0 },
+  { text: "Tỉ số 9:12 = ?", options:["3/4","4/3","9/12","1/2"], correct: 0 },
+  { text: "So sánh tỉ số 3:4 và 2:3", options:[">","<","=","Không xác định"], correct: 0 },
+  { text: "Một lớp có 12 nam và 18 nữ. Tỉ số của số học sinh nam và số học sinh nữ là:", options:["2/3","3/2","12/18","1/1"], correct: 0 },
+  { text: "Số học sinh giỏi 8, số học sinh trung bình là 12. Tỉ số của số học sinh giỏi và số học sinh trung bình là:", options:["2/3","3/2","2/5","5/2"], correct: 0 },
+  { text: "Một bữa tiệc 10 bánh mỳ và 15 xúc xích. Tỉ số của số bánh mỳ và số xúc xích là:", options:["2/3","3/2","1/1","2/5"], correct: 0 },
+  { text: "Tỉ số 18:6 =", options:["3","1/3","6","12"], correct: 0 },
+
+  // Nhóm 3: Tỉ số của số lần lặp lại một sự kiện so với tổng số lần – vận dụng (8 câu)
+  { text: "Một túi có 3 bi đỏ, 7 bi xanh. Tỉ số bi đỏ/tổng số bi:", options:["3/10","3/7","7/10","1/3"], correct: 0 },
+  { text: "Tỉ số số lần quay được số chẵn trong 8 lần gieo xúc xắc với tổng số lần là 8 lần:", options:["4/8","2/8","6/8","3/8"], correct: 0 },
+  { text: "Trong 20 lần bấm nút, nút xanh nhấp sáng 5 lần. Tỉ số là:", options:["5/20","1/4","Cả hai đều đúng","Không xác định"], correct: 2 },
+  { text: "Trong 15 lần tung đồng xu, mặt sấp xuất hiện 9 lần. Tỉ số sấp/tổng:", options:["9/15","3/5","Cả hai đều đúng","2/3"], correct: 2 },
+  { text: "Một hộp có 4 quả táo hỏng, 16 quả tốt. Tỉ số táo hỏng/tổng:", options:["1/5","4/20","Cả hai đều đúng","1/4"], correct: 2 },
+  { text: "Một lớp có 10 học sinh trúng thưởng, tổng học sinh 25. Tỉ số trúng thưởng/tổng:", options:["10/25","2/5","Cả hai đều đúng","1/2"], correct: 2 },
+  { text: "Một túi có 6 bi đỏ, 14 bi xanh. Tỉ số bi đỏ/tổng:", options:["6/20","3/10","Cả hai đều đúng","1/3"], correct: 2 },
+  { text: "Trong 12 lần tung xúc xắc, số 6 xuất hiện 3 lần. Tỉ số số 6/tổng:", options:["3/12","1/4","Cả hai đều đúng","1/3"], correct: 2 }
+
+  ],
+
+  /* ===== TUẦN 3: Tỉ số và bài toán rút về đơn vị ===== */
+  week3: [
+    { text: "Muốn tìm giá trị 1 phần, ta làm thế nào?", options:["Chia tổng cho số phần","Nhân tổng với số phần","Cộng các phần","Trừ các phần"], correct: 0 },
+    { text: "Số? ...... phần bằng 20, vậy 1 phần bằng:", options:["4","5","10","6"], correct: 0 },
+    { text: "Nếu 1 hộp bánh có 6 cái bánh, thì 4 hộp có số cái bánh là:", options:["24","12","30","18"], correct: 0 },
+    { text: "Tỉ số của 3 và 6 là:", options:["1/2","2/3","1/3","3/6"], correct: 0 },
+    { text: "Tỉ số của 8 và 4 là:", options:["2","1/2","1","3"], correct: 0 },
+    { text: "Một lớp có 12 bạn nam và 8 bạn nữ. Tỉ số nam/nữ là:", options:["3/2","2/3","4/3","1/2"], correct: 0 },
+    { text: "Tổng 25, tỉ số 2:3. Số bé là:", options:["10","12","15","8"], correct: 0 },
+    { text: "Số? ...... : 5 = 3", options:["15","8","10","5"], correct: 0 },
+    { text: "Giá trị 1 phần khi 8 phần bằng 64 là:", options:["8","6","4","12"], correct: 0 },
+    { text: "Nếu tổng là 24 và tỉ số 2:1 thì số lớn là:", options:["16","8","12","14"], correct: 0 },
+    { text: "Số? ...... × 4 = 68", options:["17","16","18","15"], correct: 0 },
+    { text: "Tổng 2 số có tỉ số 2:3 và tổng 25, số bé là:", options:["10","12","15","8"], correct: 0 },
+    { text: "Tỉ số phần trăm của 25 và 100 là:", options:["25%","50%","75%","20%"], correct: 0 },
+    { text: "Số? ...... × 9 = 81", options:["9","8","10","7"], correct: 0 },
+    { text: "Số? ...... + 8 = 19", options:["11","9","10","12"], correct: 0 },
+    { text: "Nếu a : b = 3 : 1 thì a gấp b bao nhiêu lần?", options:["3 lần","2 lần","4 lần","1/3 lần"], correct: 0 },
+    { text: "Số? ...... : 2 = 12", options:["24","22","26","20"], correct: 0 },
+    { text: "Nếu 4 phần = 32, 7 phần bằng:", options:["56","49","63","48"], correct: 0 },
+    { text: "Số? ...... + 25 = 70", options:["45","55","65","35"], correct: 0 },
+    { text: "Tỉ số 1:4 viết dưới dạng phân số là:", options:["1/4","4/1","4/5","3/4"], correct: 0 },
+  // Nhóm 1: Tỉ số của số lần lặp lại so với tổng số lần – vận dụng (10 câu)
+  { text: "Trong 12 lần gieo đồng xu, mặt sấp xuất hiện 5 lần. Tỉ số sấp/tổng:", options:["5/12","7/12","5/7","1/2"], correct: 0 },
+  { text: "Một túi có 6 bi đỏ và 14 bi xanh. Tỉ số bi đỏ/tổng:", options:["6/20","3/10","1/3","6/14"], correct: 0 },
+  { text: "Trong 15 lần tung xúc xắc, mặt có 6 chấm xuất hiện 4 lần. Tỉ số của số lần xuất hiện mặt 6 chấm so với tổng số lần là:", options:["4/15","4/6","2/3","1/4"], correct: 0 },
+  { text: "Một lớp có 8 học sinh trúng thưởng trong tổng số 24 học sinh. Tỉ số:", options:["1/3","1/2","1/4","2/3"], correct: 0 },
+  { text: "Trong 20 lần bấm nút, nút xanh nhấp sáng 5 lần. Tỉ số:", options:["5/20","1/4","Cả hai đều đúng","1/5"], correct: 2 },
+  { text: "Trong 10 lần tung đồng xu, số sấp xuất hiện 6 lần. Tỉ số sấp/tổng:", options:["3/5","6/10","Cả hai đều đúng","1/2"], correct: 2 },
+  { text: "Trong 18 lần gieo xúc xắc, số 2 xuất hiện 3 lần. Tỉ số:", options:["3/18","1/6","Cả hai đều đúng","1/5"], correct: 2 },
+  { text: "Một túi có 9 quả táo hỏng, 27 quả tốt. Tỉ số táo hỏng/tổng:", options:["9/36","1/4","Cả hai đều đúng","1/3"], correct: 2 },
+  { text: "Trong 12 lần bấm chuông, chuông xanh kêu 8 lần. Tỉ số:", options:["8/12","2/3","Cả hai đều đúng","3/4"], correct: 2 },
+  { text: "Một lớp 30 học sinh, 18 học sinh giỏi. Tỉ số giỏi/tổng:", options:["18/30","3/5","Cả hai đều đúng","2/3"], correct: 2 },
+
+  // Nhóm 2: Bài 7 – Em làm được những gì? – vận dụng tỉ số và số tự nhiên (10 câu)
+  { text: "Một nhóm có 5 nam và 7 nữ. Tỉ số nam/nữ:", options:["5/7","7/5","1/2","2/3"], correct: 0 },
+  { text: "Một lớp có 24 học sinh, 16 học sinh hoàn thành bài tập. Tỉ số hoàn thành/tổng số:", options:["16/24","2/3","Cả hai đều đúng","3/4"], correct: 2 },
+  { text: "Trong 12 lần làm thí nghiệm, thành công 9 lần. Tỉ số thành công/tổng số:", options:["9/12","3/4","Cả hai đều đúng","1/2"], correct: 2 },
+  { text: "Một bữa tiệc có 12 bánh mỳ, 18 xúc xích. Tỉ số bánh/xúc xích:", options:["2/3","3/2","1/1","2/5"], correct: 0 },
+  { text: "Một túi kẹo gồm 5 kẹo đỏ, 15 kẹo xanh. Tỉ số đỏ/tổng số kẹo:", options:["5/20","1/4","Cả hai đều đúng","2/5"], correct: 2 },
+  { text: "Trong 8 lần bấm nút, nút xanh kêu 3 lần. Tỉ số:", options:["3/8","5/8","1/2","3/5"], correct: 0 },
+  { text: "Một lớp 30 học sinh, 12 học sinh tham gia thi vẽ. Tỉ số:", options:["12/30","2/5","Cả hai đều đúng","3/5"], correct: 2 },
+  { text: "Một túi có 8 bi đỏ, 12 bi xanh. Tỉ số đỏ/tổng:", options:["8/20","2/5","Cả hai đều đúng","1/3"], correct: 2 },
+  { text: "Trong 10 lần tung đồng xu, số sấp xuất hiện 7 lần. Tỉ số sấp/tổng:", options:["7/10","3/10","Cả hai đều đúng","1/2"], correct: 2 },
+  { text: "Một lớp có 20 học sinh hoàn thành 15 bài tập. Tỉ số:", options:["15/20","3/4","Cả hai đều đúng","2/3"], correct: 2 },
+
+  // Nhóm 3: Bài 8 – Rút về đơn vị, bài toán vận dụng (10 câu)
+  { text: "Một xe đi 240 km trong 4 giờ. Quãng đường đi được trong 1 giờ là:", options:["60 km","50 km","70 km","55 km"], correct: 0 },
+  { text: "Một công việc 120 sản phẩm làm trong 6 giờ. Số sản phẩm 1 giờ là:", options:["20","25","22","18"], correct: 0 },
+  { text: "Một máy bơm 1 giờ bơm được 15 lít. 5 giờ bơm được:", options:["75 lít","70 lít","80 lít","65 lít"], correct: 0 },
+  { text: "Một nhóm 18 người hoàn thành 6 dự án. Số dự án 1 người làm được:", options:["1/3","1/2","1/4","1/6"], correct: 0 },
+  { text: "Một ô tô đi 150 km trong 3 giờ. Quãng đường 1 giờ:", options:["50 km","45 km","55 km","60 km"], correct: 0 },
+  { text: "Một bể nước 120 lít, 4 giờ bơm hết. Lượng nước 1 giờ:", options:["30 lít","25 lít","35 lít","28 lít"], correct: 0 },
+  { text: "Một thùng gạo 60 kg chia cho 5 người đều nhau. Mỗi người nhận:", options:["12 kg","10 kg","15 kg","14 kg"], correct: 0 },
+  { text: "Một xe đi 180 km trong 4 giờ. Quãng đường 1 giờ:", options:["45 km","40 km","50 km","42 km"], correct: 0 },
+  { text: "Một lớp 24 học sinh hoàn thành 12 bài tập. Số bài 1 học sinh:", options:["1/2","1/3","2/3","1/4"], correct: 0 },
+  { text: "Một máy cắt 60 m vải trong 3 giờ. Số mét 1 giờ:", options:["20 m","15 m","25 m","18 m"], correct: 0 }
+  ],
+
+  /* ===== TUẦN 4: Tìm hai số khi biết tổng, hiệu, tỉ số ===== */
+  week4: [
+    { text: "Tổng 60, tỉ số 2:3. Số lớn là:", options:["36","24","30","20"], correct: 0 },
+    { text: "Tổng 45, tỉ số 1:2. Số bé là:", options:["15","30","20","25"], correct: 0 },
+    { text: "Hiệu 15, tỉ số 2:3. Số lớn là:", options:["45","30","25","35"], correct: 0 },
+    { text: "Hiệu 20, tỉ số 2:5. Số bé là:", options:["20","30","40","50"], correct: 0 },
+    { text: "Hai số có tổng 80, tỉ số 3:5. Số bé là:", options:["30","50","48","32"], correct: 0 },
+    { text: "Tổng 72, tỉ số 1:3. Số lớn là:", options:["54","36","24","48"], correct: 0 },
+    { text: "Số? ...... + 15 = 42", options:["27","25","28","30"], correct: 0 },
+    { text: "Số? ...... - 16 = 48", options:["64","60","68","62"], correct: 0 },
+    { text: "Tổng 90, tỉ số 2:1. Số lớn là:", options:["60","45","50","30"], correct: 0 },
+    { text: "Tổng 120, tỉ số 3:5. Số bé là:", options:["45","72","48","60"], correct: 0 },
+    { text: "Hiệu 18, tỉ số 2:5. Số bé là:", options:["12","20","18","22"], correct: 0 },
+    { text: "Số? ...... × 6 = 54", options:["9","8","7","6"], correct: 0 },
+    { text: "Số? ...... ÷ 4 = 9", options:["36","32","28","40"], correct: 0 },
+    { text: "Tổng 50, tỉ số 3:2. Số lớn là:", options:["30","20","25","15"], correct: 0 },
+    { text: "Số? ...... + 8 = 23", options:["15","14","16","13"], correct: 0 },
+    { text: "Tổng 72, tỉ số 1:2. Số lớn là:", options:["48","36","24","40"], correct: 0 },
+    { text: "Hiệu 24, tỉ số 2:5. Số lớn là:", options:["60","48","40","30"], correct: 0 },
+    { text: "Số? ...... - 9 = 18", options:["27","28","26","25"], correct: 0 },
+    { text: "Tổng 60, tỉ số 3:2. Số bé là:", options:["24","30","20","36"], correct: 0 },
+    { text: "Hiệu 18, tỉ số 4:7. Số lớn là:", options:["42","30","28","24"], correct: 0 },
+  // Nhóm 1: Bài 9 – Bài toán giải bằng bốn bước tính (10 câu)
+  { text: "Một cửa hàng có 120 kg gạo, bán đi 45 kg, sau đó nhập thêm 30 kg. Số kg gạo hiện có là:", options:["105 kg","100 kg","95 kg","110 kg"], correct: 0 },
+  { text: "Một lớp có 28 học sinh, 12 học sinh nam, còn lại là nữ. Số nữ là:", options:["16","18","14","15"], correct: 0 },
+  { text: "Một ô tô đi 60 km, nghỉ một lúc, sau đó đi tiếp 40 km. Quãng đường đi được tổng cộng:", options:["100 km","95 km","105 km","90 km"], correct: 0 },
+  { text: "Một vườn cây có 150 cây, thu hoạch 60 cây. Số cây còn lại:", options:["90 cây","100 cây","80 cây","85 cây"], correct: 0 },
+  { text: "Một máy bơm 1 giờ bơm 20 lít. Sau 3 giờ, bơm được:", options:["60 lít","50 lít","55 lít","65 lít"], correct: 0 },
+  { text: "Một cửa hàng bán 45 kg đường, còn lại 75 kg. Ban đầu cửa hàng có:", options:["120 kg","110 kg","100 kg","115 kg"], correct: 0 },
+  { text: "Một ngày trời mưa, lớp 5C có 24 học sinh, 1/3 số học sinh đi học muộn. Số học sinh đi học muộn là:", options:["8","6","7","9"], correct: 0 },
+  { text: "Một người đi bộ 12 km, nghỉ một lúc, sau đó đi tiếp 15 km. Tổng quãng đường là:", options:["27 km","28 km","26 km","30 km"], correct: 0 },
+  { text: "Một túi gạo 50 kg, sử dụng 3 kg cho mỗi bữa ăn. Số bữa sử dụng hết túi gạo:", options:["16 bữa","15 bữa","18 bữa","14 bữa"], correct: 0 },
+  { text: "Một lớp học có 32 học sinh, trong đó 3/8 học sinh nam. Số học sinh nam:", options:["12","10","14","15"], correct: 0 },
+
+  // Nhóm 2: Bài 10 – Tìm hai số khi biết tổng và tỉ số (10 câu)
+  { text: "Tổng hai số là 36, tỉ số là 2 : 1. Hai số là:", options:["24 và 12","12 và 24","18 và 18","30 và 6"], correct: 0 },
+  { text: "Tổng hai số là 45, tỉ số là 3 : 2. Hai số là:", options:["27 và 18","18 và 27","30 và 15","20 và 25"], correct: 0 },
+  { text: "Hai số có tổng 56, tỉ số 5 : 3. Hai số là:", options:["35 và 21","21 và 35","30 và 26","40 và 16"], correct: 0 },
+  { text: "Tổng hai số là 48, tỉ số 4 : 5. Hai số là:", options:["21 và 27","27 và 21","24 và 24","20 và 28"], correct: 0 },
+  { text: "Hai số có tổng 60, tỉ số 1 : 2. Hai số là:", options:["20 và 40","40 và 20","30 và 30","15 và 45"], correct: 0 },
+  { text: "Tổng hai số là 72, tỉ số 3 : 5. Hai số là:", options:["27 và 45","45 và 27","30 và 42","36 và 36"], correct: 0 },
+  { text: "Hai số có tổng 90, tỉ số 7 : 8. Hai số là:", options:["42 và 48","48 và 42","40 và 50","35 và 55"], correct: 0 },
+  { text: "Tổng hai số là 54, tỉ số 2 : 4. Hai số là:", options:["18 và 36","36 và 18","20 và 34","16 và 38"], correct: 0 },
+  { text: "Hai số có tổng 80, tỉ số 3 : 5. Hai số là:", options:["30 và 50","50 và 30","40 và 40","35 và 45"], correct: 0 },
+  { text: "Tổng hai số là 66, tỉ số 2 : 5. Hai số là:", options:["18 và 48","48 và 18","20 và 46","24 và 42"], correct: 0 },
+
+  // Nhóm 3: Bài 11 – Tìm hai số khi biết hiệu và tỉ số (10 câu)
+  { text: "Hiệu hai số là 12, tỉ số 3 : 5. Hai số là:", options:["18 và 30","30 và 18","15 và 27","12 và 24"], correct: 0 },
+  { text: "Hai số có hiệu 20, tỉ số 2 : 3. Hai số là:", options:["28 và 48","40 và 20","24 và 44","30 và 50"], correct: 0 },
+  { text: "Hiệu hai số là 15, tỉ số 4 : 7. Hai số là:", options:["28 và 13","28 và 15","32 và 17","35 và 20"], correct: 0 },
+  { text: "Hai số có hiệu 18, tỉ số 5 : 7. Hai số là:", options:["30 và 12","35 và 17","25 và 7","40 và 22"], correct: 0 },
+  { text: "Hiệu hai số là 24, tỉ số 2 : 5. Hai số là:", options:["16 và 40","40 và 16","18 và 42","20 và 44"], correct: 0 },
+  { text: "Hai số có hiệu 9, tỉ số 3 : 4. Hai số là:", options:["27 và 36","15 và 6","18 và 9","9 và 0"], correct: 1 },
+  { text: "Hiệu hai số là 14, tỉ số 5 : 9. Hai số là:", options:["24 và 10","30 và 16","20 và 6","25 và 11"], correct: 0 },
+  { text: "Hai số có hiệu 10, tỉ số 3 : 5. Hai số là:", options:["15 và 5","12 và 2","18 và 8","20 và 10"], correct: 0 },
+  { text: "Hiệu hai số là 21, tỉ số 7 : 8. Hai số là:", options:["49 và 28","35 và 14","42 và 21","36 và 15"], correct: 0 },
+  { text: "Hai số có hiệu 16, tỉ số 4 : 5. Hai số là:", options:["36 và 20","32 và 16","40 và 24","28 và 12"], correct: 0 }
+
+  ],
+
+ /* ===== TUẦN 5: Héc-ta – Ki-lô-mét vuông – Tỉ lệ bản đồ ===== */
+week5: [
+  { text: "1 m² = bao nhiêu cm²?", options:["10 000","1 000","100","100 000"], correct: 0 },
+  { text: "1 ha = bao nhiêu m²?", options:["10 000","1 000","100","100 000"], correct: 0 },
+  { text: "1 km² = bao nhiêu ha?", options:["100","10","1000","10000"], correct: 0 },
+  { text: "10 000 m² = bao nhiêu ha?", options:["1 ha","10 ha","100 ha","1000 ha"], correct: 0 },
+  { text: "Chiều dài bản đồ 5 cm, tỉ lệ 1 : 10 000. Chiều dài thật là:", options:["500 m","50 m","5 km","1 km"], correct: 0 },
+  { text: "Tỉ lệ 1 : 2000 nghĩa là 1 cm bản đồ bằng:", options:["2000 cm ngoài thực tế","200 m","20 m","2 m"], correct: 0 },
+  { text: "1 ha bằng bao nhiêu a?", options:["100 a","10 a","1000 a","1 a"], correct: 0 },
+  { text: "1 ha bằng bao nhiêu m²?", options:["100 m²","10 m²","1000 m²","10 000 m²"], correct: 0 },
+  { text: "Một mảnh đất dài 60 m, rộng 40 m. Diện tích là:", options:["2400 m²","2000 m²","2600 m²","400 m²"], correct: 0 },
+  { text: "0,5 ha = ?", options:["5 000 m²","50 m²","500 m²","5 m²"], correct: 0 },
+  { text: "Tỉ lệ bản đồ 1 : 5 000. 1 cm bản đồ ứng với:", options:["50 m","5 m","500 m","100 m"], correct: 0 },
+  { text: "Số? ...... × 10 000 = 30 000", options:["3","30","300","3000"], correct: 0 },
+  { text: "Đổi 2 ha bằng bao nhiêu m²:", options:["20 000 m²","200 000 m²","2 000 m²","2000 m²"], correct: 0 },
+  { text: "1 km² = bao nhiêu m²?", options:["1 000 000","100 000","10 000","1 000"], correct: 0 },
+  { text: "Một khu rừng có diện tích 4 ha = ?", options:["40 000 m²","400 m²","4 000 m²","40000 cm²"], correct: 0 },
+  { text: "Số? ...... ÷ 100 = 35", options:["3 500","350","3 000","300"], correct: 0 },
+  { text: "Tỉ lệ bản đồ 1 : 100 000 nghĩa là 1 cm bản đồ bằng:", options:["1 km","10 km","100 km","100 m"], correct: 0 },
+  { text: "Số? ...... + 3000 = 10 000", options:["7 000","8 000","6 000","9 000"], correct: 0 },
+  { text: "Một thửa ruộng 50 m × 20 m = ? ha", options:["0,1 ha","1 ha","0,01 ha","0,2 ha"], correct: 0 },
+
+  // Nhóm 1: Bài 11 – Tìm hai số khi biết hiệu và tỉ số (dễ – trung bình) (6 câu)
+  { text: "Hiệu hai số là 10, tỉ số 2 : 3. Hai số đó là:", options:["20 và 30","14 và 24","16 và 26","10 và 15"], correct: 0 },
+  { text: "Hai số có hiệu 15, tỉ số 3 : 4. Hai số đó là:", options:["45 và 60","21 và 36","20 và 35","15 và 30"], correct: 0 },
+  { text: "Hiệu hai số là 12, tỉ số 5 : 7. Hai số đó là:", options:["25 và 37","30 và 42","20 và 32","18 và 30"], correct: 1 },
+  { text: "Hai số có hiệu 6, tỉ số 3 : 5. Hai số đó là:", options:["9 và 15","18 và 30","15 và 24","10 và 19"], correct: 0 },
+  { text: "Hiệu hai số là 8, tỉ số 4 : 5. Hai số đó là:", options:["32 và 40","12 và 20","20 và 28","24 và 32"], correct: 0 },
+  { text: "Hai số có hiệu 14, tỉ số 7 : 9. Hai số đó là:", options:["49 và 63","21 và 35","14 và 28","18 và 32"], correct: 0 },
+
+  // Nhóm 2: Bài 12 – Em làm được những gì (trung bình – khá) (8 câu)
+  { text: "Một lớp học có 30 học sinh, 1/3 tham gia văn nghệ, còn lại học thể thao. Số học sinh học thể thao là:", options:["20","18","22","15"], correct: 0 },
+  { text: "Một cửa hàng bán 50 kg gạo, dùng 1/5 kg để nấu ăn, số kg gạo còn lại:", options:["40 kg","45 kg","42 kg","48 kg"], correct: 0 },
+  { text: "Một người đi bộ 12 km, nghỉ một lúc, đi tiếp 18 km. Tổng quãng đường là:", options:["30 km","32 km","28 km","31 km"], correct: 0 },
+  { text: "Một máy bơm 1 giờ bơm 15 lít, sau 4 giờ bơm được:", options:["60 lít","55 lít","65 lít","70 lít"], correct: 0 },
+  { text: "Một lớp có 28 học sinh, 3/7 học sinh nam. Số học sinh nam là:", options:["12","10","14","15"], correct: 0 },
+  { text: "Một túi gạo 45 kg, sử dụng 5 kg mỗi ngày. Số ngày dùng hết túi gạo:", options:["9","8","10","7"], correct: 0 },
+  { text: "Một vườn cây có 150 cây, 2/5 số cây là cam, còn lại là quýt. Số cây quýt:", options:["90","80","100","70"], correct: 0 },
+  { text: "Một ngày mưa to, lớp 5A học có 32 học sinh, trong đó 3/8 số học sinh đi học muộn. Số học sinh đi học đúng giờ là:", options:["28","24","26","30"], correct: 1 },
+
+  // Nhóm 3: Bài 13 – Héc-ta (trung bình – khá) (6 câu)
+  { text: "Một mảnh ruộng có 2 ha. Diện tích bằng bao nhiêu m²?", options:["20 000 m²","2000 m²","200 000 m²","2 000 000 m²"], correct: 0 },
+  { text: "Một mảnh ruộng có 3 ha. Diện tích bằng bao nhiêu m²?", options:["30 000 m²","3 000 m²","300 000 m²","3 000 000 m²"], correct: 0 },
+  { text: "Một cánh đồng 1 ha, thu hoạch 8000 m². Phần diện tích còn lại là:", options:["2 000 m²","12 000 m²","8 000 m²","5 000 m²"], correct: 0 },
+  { text: "Một vườn cây 2 ha, dùng 0,5 ha để trồng rau. Diện tích còn lại:", options:["1,5 ha","2 ha","1 ha","3 ha"], correct: 0 },
+  { text: "Một mảnh đất 4 ha, chia đều cho 8 hộ dân. Mỗi hộ nhận:", options:["0,5 ha","0,4 ha","0,6 ha","1 ha"], correct: 0 },
+  { text: "Một mảnh đất 7 ha, 3 ha để trồng lúa. Phần còn lại trồng hoa:", options:["4 ha","5 ha","3,5 ha","4,5 ha"], correct: 0 },
+
+  // Nhóm 4: Bài 14 – Ki-lô-mét vuông (dễ – khó, số nguyên) (10 câu)
+  { text: "Một khu đất hình chữ nhật dài 2 km, rộng 1 km. Diện tích là:", options:["2 km²","3 km²","1 km²","4 km²"], correct: 0 },
+  { text: "Một khu vườn hình vuông có cạnh 4 km. Diện tích là:", options:["16 km²","12 km²","8 km²","20 km²"], correct: 0 },
+  { text: "Một khu đất hình chữ nhật dài 6 km, rộng 3 km. Diện tích là:", options:["18 km²","16 km²","20 km²","15 km²"], correct: 0 },
+  { text: "Một khu đất hình vuông có diện tích 49 km². Cạnh là:", options:["7 km","6 km","8 km","9 km"], correct: 0 },
+  { text: "Một sân bóng dài 5 km, rộng 4 km. Diện tích:", options:["20 km²","18 km²","19 km²","21 km²"], correct: 0 },
+  { text: "Một khu đất hình chữ nhật dài 8 km, rộng 2 km. Diện tích là:", options:["16 km²","15 km²","18 km²","14 km²"], correct: 0 },
+  { text: "Một mảnh đất 24 km², chia đều cho 6 hộ dân. Diện tích mỗi hộ:", options:["4 km²","5 km²","6 km²","3 km²"], correct: 0 },
+  { text: "Hai mảnh đất, mảnh thứ nhất 6 km², mảnh thứ hai 9 km². Tổng diện tích là:", options:["15 km²","14 km²","16 km²","13 km²"], correct: 0 },
+  { text: "Một mảnh đất hình vuông có diện tích 64 km². Cạnh là:", options:["8 km","7 km","9 km","6 km"], correct: 0 },
+  { text: "Một khu vườn hình chữ nhật dài 12 km, rộng 5 km. Diện tích là:", options:["60 km²","55 km²","50 km²","65 km²"], correct: 0 }
+],
+
+ /* ====== TUẦN 6 ====== */
+week6: [
+  { text:"Tỉ lệ bản đồ 1 : 10 000 nghĩa là 1 cm trên bản đồ bằng bao nhiêu ngoài thực tế?", options:["100 m","1 000 m","10 m","1 km"], correct:0 },
+  { text:"Bản đồ tỉ lệ 1 : 5000. Chiều dài 4 cm trên bản đồ là:", options:["200 m","20 m","400 m","40 m"], correct:0 },
+  { text:"1 ha = bao nhiêu m²?", options:["10 000","1 000","100","100 000"], correct:0 },
+  { text:"Đổi 6/10 ha thành m²:", options:["6 000 m²","600 m²","60 000 m²","6000 cm²"], correct:0 },
+  { text:"Một khu đất rộng 50 m và dài gấp đôi chiều rộng. Diện tích khu đất là:", options:["5000 m²","2500 m²","1000 m²","2000 m²"], correct:0 },
+  
+  { text:"Tỉ lệ 1 : 2000 nghĩa là 1 cm trên bản đồ bằng:", options:["20 m","200 m","2 m","2000 m"], correct:0 },
+  { text:"Đoạn thẳng ngoài thực tế dài 350 m. Trên bản đồ tỉ lệ 1:5000 nó dài:", options:["7 cm","3,5 cm","35 cm","0,7 cm"], correct:0 },
+  { text:"3 km² bằng bao nhiêu ha?", options:["300 ha","30 ha","3 ha","3000 ha"], correct:0 },
+  { text:"Một bản đồ có tỉ lệ 1:50 000. 2 cm ứng với:", options:["1 km","10 km","1000 m","500 m"], correct:0 },
+  { text:"Một mảnh đất 40 m × 30 m có diện tích:", options:["1200 m²","1600 m²","900 m²","1400 m²"], correct:0 },
+
+  { text:"Tỉ lệ bản đồ 1 : 100 000. 5 cm trên bản đồ ứng với:", options:["5 km","50 km","500 m","500 km"], correct:0 },
+  { text:"Một khu đất hình chữ nhật có diện tích 1 ha. Biết chiều dài 100 m, chiều rộng là:", options:["100 m","10 m","1000 m","50 m"], correct:0 },
+  { text:"Tỉ lệ 1:2500. Chiều dài thật 500 m thì trên bản đồ là:", options:["20 cm","2 cm","5 cm","50 cm"], correct:0 },
+  { text:"1 km² = ?", options:["1 000 000 m²","10 000 m²","100 000 m²","1 000 m²"], correct:0 },
+  { text:"Đoạn AB dài 800 m. Trên bản đồ tỉ lệ 1:20 000, AB dài:", options:["4 cm","40 cm","8 cm","0,4 cm"], correct:0 },
+  { text:"Một bản đồ tỉ lệ 1:10 000. Học sinh đo được sân trường dài 3,2 cm. Chiều dài thật là:", options:["320 m","32 m","3200 m","3,2 km"], correct:0 },
+  { text:"Một thửa ruộng có diện tích 0,25 ha. Đây là:", options:["2500 m²","25 000 m²","250 m²","25000 cm²"], correct:0 },
+  { text:"Một khu đất rộng 25 m. Chu vi 130 m. Chiều dài là:", options:["40 m","45 m","35 m","30 m"], correct:0 },
+  { text:"Bản đồ tỉ lệ 1 : 5000. Một đường thẳng dài 1,5 km ngoài thực tế dài bao nhiêu cm trên bản đồ?", options:["30 cm","15 cm","300 cm","3 cm"], correct:0 },
+  { text:"Một khu đất có diện tích 5000 m² tương ứng bao nhiêu ha?", options:["0,5 ha","5 ha","0,05 ha","50 ha"], correct:0 },
+  { text:"Số? … × 10 000 = 120 000", options:["12","120","1200","12000"], correct:0 },
+  { text:"Đổi 35 ha ra m²:", options:["35 000","350 000","3 500","3500"], correct:0 },
+  { text:"1 ha = ? a", options:["100 a","10 a","1000 a","1 a"], correct:0 },
+  { text:"Kí hiệu nào diễn tả tỉ lệ bản đồ?", options:["1 : N","N : 1","N × 1","1 × N"], correct:0 },
+  { text:"Một hình chữ nhật có diện tích 2400 m², chiều dài 80 m. Chiều rộng:", options:["30 m","40 m","20 m","60 m"], correct:0 },
+
+  { text:"Một thửa ruộng hình chữ nhật có chu vi 180 m, chiều dài hơn chiều rộng 30 m. Diện tích là:", options:["1800 m²","2400 m²","2250 m²","1500 m²"], correct:1 },
+  { text:"Tỉ lệ bản đồ 1:5000. Đo được đường thẳng 6,8 cm. Độ dài thật gần nhất:", options:["340 m","680 m","34 m","68 m"], correct:0 },
+  { text:"Một khu rừng có diện tích 2 km² = ?", options:["200 ha","20 ha","2 ha","2000 ha"], correct:0 },
+  { text:"Một mảnh đất dài 90 m. Chiều rộng bằng 2/3 chiều dài. Diện tích:", options:["5400 m²","6000 m²","4300 m²","4500 m²"], correct:0 },
+  { text:"Tỉ lệ 1:25 000. 3 cm bản đồ bằng:", options:["750 m","75 m","75 km","750 km"], correct:0 }
+],
+/* ===== TUẦN 7: Số thập phân – Hàng của số thập phân – Số thập phân bằng nhau ===== */
+week7: [
+  { text: "Số thập phân 3.45 được đọc là:", options:["Ba phẩy bốn mươi lăm","Ba phẩy bốn năm","Ba mươi bốn phẩy năm","Ba phẩy bốn mươi"], correct: 0 },
+  { text: "Trong số 4.82, chữ số 8 thuộc hàng:", options:["Phần mười","Phần trăm","Hàng đơn vị","Hàng chục"], correct: 0 },
+  { text: "Số thập phân nào bằng ba đơn vị và bảy phần mười?", options:["3.7","3.07","3.70","3.700"], correct: 0 },
+  { text: "Số 0.5 có nghĩa là:", options:["5 phần mười","5 phần trăm","50 phần trăm","0,5%"], correct: 0 },
+  { text: "Số thập phân 2.03 có bao nhiêu chữ số ở phần thập phân?", options:["2","1","3","0"], correct: 0 },
+  
+  { text: "Số nào lớn hơn: 0.4 và 0.35?", options:["0.4","0.35","Bằng nhau","Không so sánh được"], correct: 0 },
+  { text: "Viết dạng thập phân của ba phần trăm:", options:["0.03","0.3","3.0","0.003"], correct: 0 },
+  { text: "Số 6.0 bằng số:", options:["6","0.6","0.06","60"], correct: 0 },
+  { text: "Trong 7.56, chữ số 5 có giá trị:", options:["0.5","5","50","0.05"], correct: 0 },
+  { text: "Số thập phân 12.5 gồm:", options:["12 đơn vị và 5 phần mười","1 chục 2 đơn vị 5 phần trăm","12 phần mười","1 chục 25 phần trăm"], correct: 0 },
+
+  { text: "Số nào viết đúng dạng thập phân của 45 phần trăm?", options:["0.45","4.5","0.045","45.0"], correct: 0 },
+  { text: "So sánh: 2.305 … 2.35", options:["<",">","=","Không so sánh được"], correct: 0 },
+  { text: "0.7 bằng số phân số nào?", options:["7/10","7/100","70/100","7/1000"], correct: 0 },
+  { text: "Trong số 9.408, chữ số 8 thuộc hàng:", options:["Phần nghìn","Phần trăm","Phần mười","Hàng đơn vị"], correct: 0 },
+  { text: "Số nào bằng 4.300?", options:["4.3","4.30","4.3000","Cả B và C"], correct: 3 },
+
+  { text: "Điền số: 6.2 = ...... phần mười", options:["62","6.2","620","6"], correct: 0 },
+  { text: "Số nào lớn nhất: 5.06; 5.6; 5.60; 5.006?", options:["5.60","5.6","5.06","5.006"], correct: 0 },
+  { text: "Số 0.408 có chữ số 4 thuộc hàng:", options:["Phần mười","Phần trăm","Phần nghìn","Hàng đơn vị"], correct: 1 },
+  { text: "Số nào bằng 0.250?", options:["0.25","0.205","0.025","2.50"], correct: 0 },
+  { text: "Giá trị của chữ số 3 trong 12.36 là:", options:["0.3","3","30","0.03"], correct: 0 },
+
+  { text: "Một sợi dây dài 2.75 m. Viết số đo đó theo cm:", options:["275 cm","27.5 cm","2750 cm","2.75 cm"], correct: 0 },
+  { text: "Lan đọc số 4.502 là 'bốn phẩy năm trăm linh hai'. Câu này:", options:["Sai vì đọc phần thập phân như số tự nhiên","Đúng","Sai vì thiếu chữ số","Sai vì thừa chữ số"], correct: 0 },
+  { text: "Điền số: 3.05 = ...... + 0.05", options:["3","3.0","3.00","Cả A và C"], correct: 3 },
+  { text: "Một lớp có 0.35 số học sinh là nữ. Lớp có 40 học sinh. Số học sinh nữ là:", options:["14","16","12","10"], correct: 0 },
+  { text: "Số nào bằng ba phần mười cộng năm phần trăm?", options:["0.35","0.3","0.05","0.305"], correct: 0 },
+
+  { text: "Điền số: 5 + 0.009 = ......", options:["5.009","5.09","5.9","5.0009"], correct: 0 },
+  { text: "Số nào nằm giữa 1.2 và 1.25?", options:["1.23","1.18","1.29","1.26"], correct: 0 },
+  { text: "Số 0.750 bằng:", options:["0.75","0.705","0.075","0.7500"], correct: 3 },
+  { text: "Một ca nước có 0.45 lít. Hai ca nước có:", options:["0.9 lít","9 lít","0.045 lít","4.5 lít"], correct: 0 },
+  { text: "Điền số: 2.4 < ...... < 2.45", options:["2.41","2.5","2.355","2.46"], correct: 0 }
+],
+/* ===== TUẦN 8: So sánh số thập phân – Làm tròn số thập phân – Ôn tập ===== */
+week8: [
+  { text: "So sánh: 3.45 … 3.5", options:["<",">","=","Không so sánh được"], correct: 0 },
+  { text: "Số nào lớn hơn: 4.08 và 4.8?", options:["4.8","4.08","Bằng nhau","Không xác định"], correct: 0 },
+  { text: "Số lớn nhất: 2.305; 2.35; 2.3005;", options:["2.35","2.305","2.3005","Bằng nhau"], correct: 0 },
+  { text: "Số nhỏ nhất: 7.05; 7.5; 7.005;", options:["7.005","7.05","7.5","Bằng nhau"], correct: 0 },
+  { text: "So sánh: 0.7 … 0.65", options:[">","<","=","Không so sánh được"], correct: 0 },
+
+  { text: "Số lớn hơn: 3.205 và 3.25", options:["3.25","3.205","Bằng nhau","Không biết"], correct: 0 },
+  { text: "Điền số: 5.09 … 5.9", options:["<",">","=","?"], correct: 0 },
+  { text: "So sánh: 1.430 … 1.43", options:["=","<",">","Không so sánh được"], correct: 0 },
+  { text: "Số nào lớn hơn: 0.08 và 0.008?", options:["0.08","0.008","Bằng nhau","Không biết"], correct: 0 },
+  { text: "Số bé nhất: 9.1; 9.01; 9.10; 9.001", options:["9.001","9.01","9.1","9.10"], correct: 0 },
+
+  { text: "Làm tròn 3.46 đến hàng phần mười:", options:["3.5","3.4","3.45","4"], correct: 0 },
+  { text: "Làm tròn 5.82 đến hàng đơn vị:", options:["6","5","5.8","5.9"], correct: 0 },
+  { text: "Làm tròn 4.04 đến hàng phần mười:", options:["4.0","4.1","4.04","3.9"], correct: 0 },
+  { text: "Làm tròn 7.98 đến hàng đơn vị:", options:["8","7","7.9","7.98"], correct: 0 },
+  { text: "Làm tròn 2.51 đến hàng phần trăm:", options:["2.51","2.5","2.52","2.6"], correct: 0 },
+
+  { text: "Làm tròn 6.47 đến hàng phần mười:", options:["6.5","6.4","6.47","6"], correct: 0 },
+  { text: "Làm tròn 8.03 đến hàng đơn vị:", options:["8","9","7","8.0"], correct: 0 },
+  { text: "Làm tròn 1.234 đến hàng phần trăm:", options:["1.23","1.24","1.2","1.25"], correct: 0 },
+  { text: "Làm tròn 9.66 đến hàng đơn vị:", options:["10","9","9.7","9.6"], correct: 0 },
+  { text: "Làm tròn 12.449 đến hàng phần mười:", options:["12.4","12.5","12.45","12.44"], correct: 0 },
+
+  { text: "Số lớn hơn: 4.6 × 100 hay 460?", options:["Bằng nhau","4.6 × 100 lớn hơn","460 lớn hơn","Không xác định"], correct: 0 },
+  { text: "0.25 = bao nhiêu phần trăm?", options:["25%","2.5%","0.25%","0.025%"], correct: 0 },
+  { text: "Số nào tương đương 7.50?", options:["7.5","7.500","7.5000","Cả 3 đáp án"], correct: 3 },
+  { text: "Số nào bằng 2 + 0.03 + 0.004?", options:["2.034","2.304","2.43","2.0034"], correct: 0 },
+  { text: "Số nào lớn nhất: 0.7; 0.70; 0.705; 0.75?", options:["0.75","0.705","0.7","0.70"], correct: 0 },
+
+  { text: "Một thửa đất dài 12.5 m và rộng 4.2 m. Diện tích gần đúng là:", options:["≈ 53 m²","≈ 50 m²","≈ 60 m²","≈ 40 m²"], correct: 0 },
+  { text: "Một chai nước ghi 0.48 l. Làm tròn đến phần mười:", options:["0.5 l","0.4 l","0.48 l","0.45 l"], correct: 0 },
+  { text: "Một đoạn dây dài 3.279 m. Làm tròn đến phần trăm:", options:["3.28 m","3.27 m","3.3 m","3.2 m"], correct: 0 },
+  { text: "Số nào nằm giữa 2.3 và 2.31?", options:["2.305","2.32","2.299","2.315"], correct: 0 },
+  { text: "Một lớp có 35 học sinh. 0.4 số học sinh là nữ. Số học sinh nữ là:", options:["14","15","12","10"], correct: 0 }
+],
+/* ===== TUẦN 9: Viết số đo độ dài – khối lượng – diện tích dưới dạng số thập phân – Em làm được những gì ===== */
+week9: [
+  // Bài 24: Viết số đo độ dài dưới dạng số thập phân
+  { text: "Đổi 2 m 5 cm sang số thập phân mét:", options:["2.05 m","2.5 m","2.005 m","2.50 m"], correct: 0 },
+  { text: "Đổi 3 m 25 cm sang số thập phân mét:", options:["3.25 m","3.2 m","3.05 m","3.5 m"], correct: 0 },
+  { text: "Đổi 1 m 8 cm sang số thập phân mét:", options:["1.08 m","1.8 m","1.008 m","1.80 m"], correct: 0 },
+  { text: "Đổi 5 m 12 cm sang số thập phân mét:", options:["5.12 m","5.2 m","5.01 m","5.20 m"], correct: 0 },
+  { text: "Đổi 7 m 75 cm sang số thập phân mét:", options:["7.75 m","7.57 m","7.7 m","7.705 m"], correct: 0 },
+
+  { text: "Đổi 4 m 9 cm sang số thập phân mét:", options:["4.09 m","4.9 m","4.009 m","4.90 m"], correct: 0 },
+  { text: "Đổi 6 m 4 cm sang số thập phân mét:", options:["6.04 m","6.4 m","6.004 m","6.40 m"], correct: 0 },
+  { text: "Đổi 2 m 85 cm sang số thập phân mét:", options:["2.85 m","2.58 m","2.805 m","2.8 m"], correct: 0 },
+  { text: "Đổi 1 m 75 cm sang số thập phân mét:", options:["1.75 m","1.57 m","1.705 m","1.7 m"], correct: 0 },
+  { text: "Đổi 3 m 50 cm sang số thập phân mét:", options:["3.50 m","3.5 m","3.05 m","3.005 m"], correct: 0 },
+
+  // Bài 25: Viết số đo khối lượng dưới dạng số thập phân
+  { text: "Đổi 2 kg 5 g sang số thập phân kg:", options:["2.005 kg","2.05 kg","2.5 kg","2.0005 kg"], correct: 0 },
+  { text: "Đổi 3 kg 25 g sang số thập phân kg:", options:["3.025 kg","3.25 kg","3.0025 kg","3.5 kg"], correct: 0 },
+  { text: "Đổi 1 kg 8 g sang số thập phân kg:", options:["1.008 kg","1.8 kg","1.0008 kg","1.80 kg"], correct: 0 },
+  { text: "Đổi 5 kg 120 g sang số thập phân kg:", options:["5.12 kg","5.012 kg","5.2 kg","5.0012 kg"], correct: 0 },
+  { text: "Đổi 7 kg 750 g sang số thập phân kg:", options:["7.75 kg","7.075 kg","7.705 kg","7.7 kg"], correct: 0 },
+
+  { text: "Đổi 4 kg 90 g sang số thập phân kg:", options:["4.09 kg","4.9 kg","4.009 kg","4.900 kg"], correct: 0 },
+  { text: "Đổi 6 kg 40 g sang số thập phân kg:", options:["6.04 kg","6.4 kg","6.004 kg","6.400 kg"], correct: 0 },
+  { text: "Đổi 2 kg 850 g sang số thập phân kg:", options:["2.85 kg","2.58 kg","2.805 kg","2.8 kg"], correct: 0 },
+  { text: "Đổi 1 kg 750 g sang số thập phân kg:", options:["1.75 kg","1.57 kg","1.705 kg","1.7 kg"], correct: 0 },
+  { text: "Đổi 3 kg 500 g sang số thập phân kg:", options:["3.50 kg","3.5 kg","3.05 kg","3.005 kg"], correct: 0 },
+
+  // Bài 26: Viết số đo diện tích dưới dạng số thập phân
+  { text: "Đổi 2 m² 5 dm² sang số thập phân m²:", options:["2.05 m²","2.5 m²","2.005 m²","2.50 m²"], correct: 0 },
+  { text: "Đổi 3 m² 25 dm² sang số thập phân m²:", options:["3.25 m²","3.2 m²","3.05 m²","3.5 m²"], correct: 0 },
+  { text: "Đổi 1 m² 8 dm² sang số thập phân m²:", options:["1.08 m²","1.8 m²","1.008 m²","1.80 m²"], correct: 0 },
+  { text: "Đổi 5 m² 12 dm² sang số thập phân m²:", options:["5.12 m²","5.2 m²","5.01 m²","5.20 m²"], correct: 0 },
+  { text: "Đổi 7 m² 75 dm² sang số thập phân m²:", options:["7.75 m²","7.57 m²","7.7 m²","7.705 m²"], correct: 0 },
+
+  { text: "Đổi 4 m² 9 dm² sang số thập phân m²:", options:["4.09 m²","4.9 m²","4.009 m²","4.90 m²"], correct: 0 },
+  { text: "Đổi 6 m² 4 dm² sang số thập phân m²:", options:["6.04 m²","6.4 m²","6.004 m²","6.40 m²"], correct: 0 },
+  { text: "Đổi 2 m² 85 dm² sang số thập phân m²:", options:["2.85 m²","2.58 m²","2.805 m²","2.8 m²"], correct: 0 },
+  { text: "Đổi 1 m² 75 dm² sang số thập phân m²:", options:["1.75 m²","1.57 m²","1.705 m²","1.7 m²"], correct: 0 },
+  { text: "Đổi 3 m² 50 dm² sang số thập phân m²:", options:["3.50 m²","3.5 m²","3.05 m²","3.005 m²"], correct: 0 },
+
+  // Bài 27: Em làm được những gì? (vận dụng)
+  { text: "Một mảnh vườn dài 3 m 25 cm, rộng 2 m 5 cm. Diện tích là:", options:["6.65 m²","6.5 m²","6.7 m²","6.6 m²"], correct: 0 },
+  { text: "Một thùng nước 5 l 25 cl. Đổi sang lít thập phân:", options:["5.25 l","5.2 l","5.05 l","5.50 l"], correct: 0 },
+  { text: "Một túi gạo nặng 2 kg 750 g. Viết dưới dạng số thập phân kg:", options:["2.75 kg","2.7 kg","2.705 kg","2.57 kg"], correct: 0 },
+  { text: "Một tấm vải dài 4 m 5 cm, rộng 1 m 8 cm. Diện tích là:", options:["4.32 m²","4.3 m²","4.28 m²","4.35 m²"], correct: 0 },
+  { text: "Một khối gỗ nặng 3 kg 120 g. Viết dưới dạng số thập phân kg:", options:["3.12 kg","3.2 kg","3.021 kg","3.102 kg"], correct: 0 }
+],
+
+
+/* ===== TUẦN 10: Phép cộng – Phép trừ số thập phân – Ôn tập ===== */
+week9: [
+  { text: "Tính: 2.5 + 3.4 =", options:["5.9","6","5.04","7"], correct: 0 },
+  { text: "Tính: 1.2 + 0.35 =", options:["1.55","1.45","1.53","1.5"], correct: 0 },
+  { text: "Tính: 4.08 + 2.4 =", options:["6.48","6.4","6.44","7.48"], correct: 0 },
+  { text: "Tính: 0.75 + 0.25 =", options:["1","0.9","0.95","1.1"], correct: 0 },
+  { text: "Tính: 5.6 + 3.09 =", options:["8.69","8.6","9","7.69"], correct: 0 },
+
+  { text: "Tính: 7.4 – 2.6 =", options:["4.8","4.7","5","3.8"], correct: 0 },
+  { text: "Tính: 3.05 – 1.2 =", options:["1.85","2.15","2","1.8"], correct: 0 },
+  { text: "Tính: 8 – 3.45 =", options:["4.55","5.65","4.5","4.6"], correct: 0 },
+  { text: "Tính: 6.0 – 2.75 =", options:["3.25","3.3","4.25","2.25"], correct: 0 },
+  { text: "Tính: 10 – 7.89 =", options:["2.11","2.21","3.11","1.11"], correct: 0 },
+
+  { text: "Tính: 1.205 + 3.4 =", options:["4.605","4.5","4.45","4.405"], correct: 0 },
+  { text: "Tính: 9.06 + 0.94 =", options:["10","10.1","9.9","9.96"], correct: 0 },
+  { text: "Tính: 5.38 – 2.07 =", options:["3.31","3.3","3.41","3.28"], correct: 0 },
+  { text: "Tính: 12.5 – 0.8 =", options:["11.7","12.3","11.8","11.6"], correct: 0 },
+  { text: "Tính: 0.48 + 0.52 =", options:["1","0.9","0.95","0.5"], correct: 0 },
+
+  { text: "Giá trị biểu thức: 2.4 + 3.6 – 1.5 =", options:["4.5","4.6","4.4","5"], correct: 0 },
+  { text: "Tính: (5.4 – 2.4) + 1.3 =", options:["4.3","4","3.9","5.1"], correct: 0 },
+  { text: "Tính: 7.2 – (3.2 + 1.5) =", options:["2.5","3","2.4","2"], correct: 0 },
+  { text: "Giá trị biểu thức: 9 – (2.47 + 3.53) =", options:["3","2.9","3.1","4"], correct: 0 },
+  { text: "Tính: (4.08 – 1.3) + 0.22 =", options:["3","3.1","2.9","3.2"], correct: 0 },
+
+  { text: "Một cửa hàng bán 2,5 kg cam và 1,75 kg táo. Tổng số kg là:", options:["4,25 kg","4 kg","3,75 kg","2,75 kg"], correct: 0 },
+  { text: "Một thùng có 5 lít nước. Rót ra 1.8 lít. Còn lại:", options:["3.2 l","3 l","3.18 l","2.8 l"], correct: 0 },
+  { text: "Một tấm vải dài 12,5 m. Cắt 3,75 m. Chiều dài còn lại:", options:["8,75 m","9 m","7,75 m","8,5 m"], correct: 0 },
+  { text: "Hai đoạn dây dài 3.4 m và 2.75 m. Tổng độ dài:", options:["6.15 m","6.2 m","5.95 m","6.1 m"], correct: 0 },
+  { text: "Bình có 0.85 l sữa. Uống 0.25 l. Còn:", options:["0.6 l","0.7 l","0.65 l","0.5 l"], correct: 0 },
+
+  { text: "Tính nhanh: 6.7 + 2.3 =", options:["9","8.9","9.1","9.01"], correct: 0 },
+  { text: "Giá trị nhỏ nhất: 2.5 – 1.45; 2.5 – 1.4; 2.5 – 1.35", options:["2.5 – 1.35","2.5 – 1.45","2.5 – 1.4","Bằng nhau"], correct: 1 },
+  { text: "Tính: 0.9 + 0.09 =", options:["0.99","0.9","1","1.09"], correct: 0 },
+  { text: "Tính: 4.32 – 0.32 =", options:["4","4.1","4.02","3.1"], correct: 0 },
+  { text: "Biểu thức: 7.25 – (2.05 + 1.2) =", options:["4","4.05","3.95","5"], correct: 0 },
+  { text: "Một mảnh vườn dài 3.2 m, rộng 1.5 m. Diện tích là:", options:["4.8 m²","4.7 m²","4.5 m²","4.9 m²"], correct: 0 },
+  { text: "Một túi gạo nặng 2.5 kg, thêm 0.75 kg nữa. Tổng khối lượng là:", options:["3.25 kg","3.3 kg","3.2 kg","3.5 kg"], correct: 0 },
+  { text: "Một thùng nước có 4.5 l, rót ra 1.2 l. Còn lại:", options:["3.3 l","3.4 l","3.2 l","3.5 l"], correct: 0 },
+  { text: "Chiều dài 1 tấm vải 5.25 m, cắt đi 2.1 m. Còn lại:", options:["3.15 m","3.05 m","3.2 m","3.1 m"], correct: 0 },
+  { text: "Một bồn sữa 6 l, rót ra 0.75 l. Còn lại:", options:["5.25 l","5.2 l","5.3 l","5.15 l"], correct: 0 },
+  { text: "Một mảnh đất 2.5 m × 1.2 m. Diện tích là:", options:["3 m²","3.0 m²","3.2 m²","2.8 m²"], correct: 0 },
+  { text: "Một gói đường nặng 1.5 kg, thêm 0.85 kg nữa. Tổng khối lượng là:", options:["2.35 kg","2.3 kg","2.4 kg","2.25 kg"], correct: 0 },
+  { text: "Một thùng nước 5.5 l, rót ra 2.1 l. Còn lại:", options:["3.4 l","3.3 l","3.5 l","3.2 l"], correct: 0 },
+  { text: "Một tấm vải dài 4.2 m, cắt 1.8 m. Còn lại:", options:["2.4 m","2.5 m","2.3 m","2.35 m"], correct: 0 },
+  { text: "Một khối gỗ 3.6 kg, lấy đi 1.2 kg. Còn lại:", options:["2.4 kg","2.3 kg","2.5 kg","2.35 kg"], correct: 0 },
+  { text: "Tính: 2.5 + 3.4 =", options:["5.9","6","5.04","7"], correct: 0 },
+  { text: "Tính: 1.2 + 0.35 =", options:["1.55","1.45","1.53","1.5"], correct: 0 },
+  { text: "Tính: 4.08 + 2.4 =", options:["6.48","6.4","6.44","7.48"], correct: 0 },
+  { text: "Tính: 0.75 + 0.25 =", options:["1","0.9","0.95","1.1"], correct: 0 },
+  { text: "Tính: 5.6 + 3.09 =", options:["8.69","8.6","9","7.69"], correct: 0 },
+
+  { text: "Tính: 7.4 + 2.6 =", options:["10","9.8","10.1","10.2"], correct: 0 },
+  { text: "Tính: 3.05 + 1.2 =", options:["4.25","4.3","4.2","4.1"], correct: 0 },
+  { text: "Tính: 8 + 3.45 =", options:["11.45","11.5","11.4","11.55"], correct: 0 },
+  { text: "Tính: 6.0 + 2.75 =", options:["8.75","8.7","8.8","8.65"], correct: 0 },
+  { text: "Tính: 10 + 7.89 =", options:["17.89","17.9","17.8","18"], correct: 0 },
+  { text: "Tính nhanh: 6.7 + 2.3 =", options:["9","8.9","9.1","9.01"], correct: 0 },
+  { text: "Tính: 0.48 + 0.52 =", options:["1","0.9","0.95","0.5"], correct: 0 },
+  { text: "Tính: 1.205 + 3.4 =", options:["4.605","4.5","4.45","4.405"], correct: 0 },
+  { text: "Tính: 9.06 + 0.94 =", options:["10","10.1","9.9","9.96"], correct: 0 },
+  { text: "Tính: 12.5 + 0.8 =", options:["13.3","13.2","13.25","13.4"], correct: 0 },
+  { text: "Tính: 7.4 – 2.6 =", options:["4.8","4.7","5","3.8"], correct: 0 },
+  { text: "Tính: 3.05 – 1.2 =", options:["1.85","2.15","2","1.8"], correct: 0 },
+  { text: "Tính: 8 – 3.45 =", options:["4.55","5.65","4.5","4.6"], correct: 0 },
+  { text: "Tính: 6.0 – 2.75 =", options:["3.25","3.3","4.25","2.25"], correct: 0 },
+  { text: "Tính: 10 – 7.89 =", options:["2.11","2.21","3.11","1.11"], correct: 0 },
+  { text: "Tính: 5.38 – 2.07 =", options:["3.31","3.3","3.41","3.28"], correct: 0 },
+  { text: "Tính: 12.5 – 0.8 =", options:["11.7","12.3","11.8","11.6"], correct: 0 },
+  { text: "Tính: 4.32 – 0.32 =", options:["4","4.1","4.02","3.1"], correct: 0 },
+  { text: "Tính: 7.25 – (2.05 + 1.2) =", options:["4","4.05","3.95","5"], correct: 0 },
+  { text: "Tính: (4.08 – 1.3) + 0.22 =", options:["3","3.1","2.9","3.2"], correct: 0 }
+],
+/* ===== TUẦN 11: Em làm được – Nhân số thập phân với số tự nhiên – Nhân hai số thập phân ===== */
+week11: [
+  // Bài 30: Em làm được những gì – Tiết 1
+  { text: "Một mảnh vườn dài 4.2 m, rộng 1.5 m. Diện tích là:", options:["6.3 m²","6.2 m²","6.4 m²","6.35 m²"], correct: 0 },
+  { text: "Một túi gạo nặng 2.5 kg, thêm 1.3 kg nữa. Tổng khối lượng là:", options:["3.8 kg","3.7 kg","3.9 kg","3.85 kg"], correct: 0 },
+  { text: "Một thùng nước có 5.5 l, rót ra 2.2 l. Còn lại:", options:["3.3 l","3.4 l","3.2 l","3.35 l"], correct: 0 },
+  { text: "Chiều dài tấm vải 6.25 m, cắt đi 2.5 m. Còn lại:", options:["3.75 m","3.7 m","3.8 m","3.65 m"], correct: 0 },
+  { text: "Một khối gỗ 4.6 kg, lấy đi 1.2 kg. Còn lại:", options:["3.4 kg","3.5 kg","3.35 kg","3.45 kg"], correct: 0 },
+
+  { text: "Một mảnh đất 3.5 m × 2.2 m. Diện tích là:", options:["7.7 m²","7.6 m²","7.5 m²","7.8 m²"], correct: 0 },
+  { text: "Một gói đường nặng 1.8 kg, thêm 0.95 kg nữa. Tổng khối lượng là:", options:["2.75 kg","2.7 kg","2.8 kg","2.85 kg"], correct: 0 },
+  { text: "Một thùng nước 6 l, rót ra 1.45 l. Còn lại:", options:["4.55 l","4.5 l","4.6 l","4.65 l"], correct: 0 },
+  { text: "Một tấm vải dài 5.2 m, cắt 1.8 m. Còn lại:", options:["3.4 m","3.35 m","3.3 m","3.45 m"], correct: 0 },
+  { text: "Một khối gỗ 3.75 kg, lấy đi 1.25 kg. Còn lại:", options:["2.5 kg","2.45 kg","2.55 kg","2.6 kg"], correct: 0 },
+
+  // Bài 30: Em làm được những gì – Tiết 2
+  { text: "Một mảnh vườn dài 3.8 m, rộng 2.1 m. Diện tích là:", options:["7.98 m²","7.9 m²","8 m²","8.05 m²"], correct: 0 },
+  { text: "Một túi gạo nặng 2.6 kg, thêm 1.35 kg nữa. Tổng khối lượng là:", options:["3.95 kg","3.9 kg","4 kg","3.85 kg"], correct: 0 },
+  { text: "Một thùng nước 7 l, rót ra 2.45 l. Còn lại:", options:["4.55 l","4.5 l","4.6 l","4.65 l"], correct: 0 },
+  { text: "Chiều dài tấm vải 6.4 m, cắt đi 2.35 m. Còn lại:", options:["4.05 m","4 m","4.1 m","4.15 m"], correct: 0 },
+  { text: "Một khối gỗ 5.25 kg, lấy đi 1.75 kg. Còn lại:", options:["3.5 kg","3.45 kg","3.55 kg","3.6 kg"], correct: 0 },
+
+  // Bài 31: Nhân một số thập phân với một số tự nhiên
+  { text: "Tính: 2.5 × 3 =", options:["7.5","8","7","6.5"], correct: 0 },
+  { text: "Tính: 0.4 × 5 =", options:["2","2.1","2.2","1.9"], correct: 0 },
+  { text: "Tính: 1.2 × 4 =", options:["4.8","4.9","5","4.7"], correct: 0 },
+  { text: "Tính: 0.75 × 6 =", options:["4.5","4.6","4.4","4.55"], correct: 0 },
+  { text: "Tính: 3.5 × 2 =", options:["7","7.1","6.9","7.2"], correct: 0 },
+
+  // Bài 32: Nhân hai số thập phân – Tiết 1
+  { text: "Tính: 1.2 × 0.5 =", options:["0.6","0.5","0.65","0.55"], correct: 0 },
+  { text: "Tính: 0.6 × 0.7 =", options:["0.42","0.4","0.45","0.41"], correct: 0 },
+  { text: "Tính: 2 × 0.25 =", options:["0.5","0.45","0.6","0.4"], correct: 0 },
+  { text: "Tính: 1.2 × 1.5 =", options:["1.8","1.75","1.9","2"], correct: 0 },
+  { text: "Tính: 0.9 × 0.9 =", options:["0.81","0.8","0.82","0.79"], correct: 0 },
+
+  { text: "Tính: 2.4 × 1.5 =", options:["3.6","3.5","3.7","4"], correct: 0 },
+  { text: "Tính: 0.6 × 3.2 =", options:["1.92","1.9","2","2.1"], correct: 0 },
+  { text: "Tính: 4.05 × 0.5 =", options:["2.025","2","2.05","2.1"], correct: 0 },
+  { text: "Tính: 1.25 × 0.4 =", options:["0.5","0.45","0.6","0.4"], correct: 0 },
+  { text: "Tính: 0.8 × 0.75 =", options:["0.6","0.65","0.7","0.55"], correct: 0 }
+],
+/* ===== TUẦN 12: Nhân – Chia số thập phân – Em làm được ===== */
+week12: [
+  // Bài 32: Nhân hai số thập phân – Tiết 2
+  { text: "Tính: 2.4 × 1.5 =", options:["3.6","3.5","3.7","4"], correct: 0 },
+  { text: "Tính: 0.6 × 3.2 =", options:["1.92","1.9","2","2.1"], correct: 0 },
+  { text: "Tính: 4.05 × 0.5 =", options:["2.025","2","2.05","2.1"], correct: 0 },
+  { text: "Tính: 1.25 × 0.4 =", options:["0.5","0.45","0.6","0.4"], correct: 0 },
+  { text: "Tính: 0.8 × 0.75 =", options:["0.6","0.65","0.7","0.55"], correct: 0 },
+
+  { text: "Tính: 3.5 × 0.6 =", options:["2.1","2.05","2.2","2"], correct: 0 },
+  { text: "Tính: 4.2 × 0.5 =", options:["2.1","2","2.2","2.05"], correct: 0 },
+  { text: "Tính: 0.75 × 1.6 =", options:["1.2","1.18","1.22","1.3"], correct: 0 },
+  { text: "Tính: 2.5 × 1.2 =", options:["3","3.0","3.2","2.8"], correct: 0 },
+  { text: "Tính: 1.8 × 0.25 =", options:["0.45","0.4","0.5","0.42"], correct: 0 },
+
+  // Bài 33: Nhân một số thập phân với 10;100;1000… và với 0,1;0,01;0,001
+  { text: "Tính: 2.5 × 10 =", options:["25","2.5","250","0.25"], correct: 0 },
+  { text: "Tính: 0.4 × 100 =", options:["40","4","400","0.04"], correct: 0 },
+  { text: "Tính: 1.25 × 1000 =", options:["1250","125","12.5","1.25"], correct: 0 },
+  { text: "Tính: 3.6 × 0.1 =", options:["0.36","0.36","0.036","0.006"], correct: 0 },
+  { text: "Tính: 4.8 × 0.01 =", options:["0.048","0.48","0.0048","0.008"], correct: 0 },
+
+  { text: "Tính: 5.25 × 0.001 =", options:["0.00525","0.0525","0.525","0.000525"], correct: 0 },
+  { text: "Tính: 0.75 × 10 =", options:["7.5","0.75","75","0.075"], correct: 0 },
+  { text: "Tính: 0.08 × 100 =", options:["8","0.8","0.08","80"], correct: 0 },
+  { text: "Tính: 0.625 × 1000 =", options:["625","62.5","6.25","0.625"], correct: 0 },
+  { text: "Tính: 0.36 × 0.1 =", options:["0.036","0.36","0.0036","0.006"], correct: 0 },
+
+  // Bài 34: Em làm được những gì
+  { text: "Một mảnh đất 3.2 m × 1.5 m. Diện tích là:", options:["4.8 m²","4.7 m²","4.5 m²","4.9 m²"], correct: 0 },
+  { text: "Một túi gạo nặng 2.5 kg, thêm 0.75 kg nữa. Tổng khối lượng là:", options:["3.25 kg","3.3 kg","3.2 kg","3.5 kg"], correct: 0 },
+  { text: "Một thùng nước có 4.5 l, rót ra 1.2 l. Còn lại:", options:["3.3 l","3.4 l","3.2 l","3.5 l"], correct: 0 },
+  { text: "Chiều dài 1 tấm vải 5.25 m, cắt đi 2.1 m. Còn lại:", options:["3.15 m","3.05 m","3.2 m","3.1 m"], correct: 0 },
+  { text: "Một khối gỗ 3.6 kg, lấy đi 1.2 kg. Còn lại:", options:["2.4 kg","2.3 kg","2.5 kg","2.35 kg"], correct: 0 },
+
+  // Bài 35: Chia một số thập phân cho một số tự nhiên
+  { text: "Tính: 3.6 ÷ 4 =", options:["0.9","0.8","1","0.85"], correct: 0 },
+  { text: "Tính: 4.8 ÷ 6 =", options:["0.8","0.9","0.75","0.85"], correct: 0 },
+  { text: "Tính: 7.5 ÷ 5 =", options:["1.5","1.4","1.45","1.55"], correct: 0 },
+  { text: "Tính: 2.4 ÷ 3 =", options:["0.8","0.7","0.75","0.85"], correct: 0 },
+  { text: "Tính: 9 ÷ 4 =", options:["2.25","2.2","2.5","2.3"], correct: 0 },
+
+  // Bài 36: Chia một số tự nhiên cho một số tự nhiên mà thương là số thập phân
+  { text: "Tính: 7 ÷ 4 =", options:["1.75","1.7","1.8","1.8"], correct: 0 },
+  { text: "Tính: 5 ÷ 2 =", options:["2.5","2.4","2.6","2.45"], correct: 0 },
+  { text: "Tính: 9 ÷ 8 =", options:["1.125","1.12","1.15","1.2"], correct: 0 },
+  { text: "Tính: 11 ÷ 4 =", options:["2.75","2.7","2.8","2.85"], correct: 0 },
+  { text: "Tính: 3 ÷ 2 =", options:["1.5","1.45","1.55","1.6"], correct: 0 }
+],
+/* ===== TUẦN 13: Chia số thập phân – Em làm được ===== */
+week13: [
+  // Bài 37: Chia số thập phân cho 10, 100, 1000… và cho 0,1; 0,01; 0,001
+  { text: "Tính: 25 ÷ 10 =", options:["2.5","2","2.0","2.05"], correct: 0 },
+  { text: "Tính: 0.48 ÷ 100 =", options:["0.0048","0.048","0.48","0.00048"], correct: 0 },
+  { text: "Tính: 3.6 ÷ 1000 =", options:["0.0036","0.036","0.36","0.00036"], correct: 0 },
+  { text: "Tính: 2.5 ÷ 0.1 =", options:["25","2.5","0.25","250"], correct: 0 },
+  { text: "Tính: 0.36 ÷ 0.01 =", options:["36","3.6","0.36","0.036"], correct: 0 },
+
+  { text: "Tính: 4.8 ÷ 0.001 =", options:["4800","480","4.8","0.48"], correct: 0 },
+  { text: "Tính: 7.5 ÷ 10 =", options:["0.75","0.7","0.8","0.85"], correct: 0 },
+  { text: "Tính: 0.625 ÷ 100 =", options:["0.00625","0.0625","0.625","0.000625"], correct: 0 },
+  { text: "Tính: 1.2 ÷ 1000 =", options:["0.0012","0.012","0.12","0.00012"], correct: 0 },
+  { text: "Tính: 0.9 ÷ 0.1 =", options:["9","0.9","0.09","90"], correct: 0 },
+
+  // Bài 38: Em làm được những gì
+  { text: "Một mảnh vườn 3.2 m × 1.5 m. Diện tích là:", options:["4.8 m²","4.7 m²","4.5 m²","4.9 m²"], correct: 0 },
+  { text: "Một túi gạo nặng 2.5 kg, thêm 0.75 kg nữa. Tổng khối lượng là:", options:["3.25 kg","3.3 kg","3.2 kg","3.5 kg"], correct: 0 },
+  { text: "Một thùng nước 4.5 l, rót ra 1.2 l. Còn lại:", options:["3.3 l","3.4 l","3.2 l","3.5 l"], correct: 0 },
+  { text: "Chiều dài tấm vải 5.25 m, cắt đi 2.1 m. Còn lại:", options:["3.15 m","3.05 m","3.2 m","3.1 m"], correct: 0 },
+  { text: "Một khối gỗ 3.6 kg, lấy đi 1.2 kg. Còn lại:", options:["2.4 kg","2.3 kg","2.5 kg","2.35 kg"], correct: 0 },
+
+  // Bài 39: Chia một số tự nhiên cho một số thập phân
+  { text: "Tính: 5 ÷ 0.5 =", options:["10","9","11","5"], correct: 0 },
+  { text: "Tính: 7 ÷ 0.7 =", options:["10","9","11","7"], correct: 0 },
+  { text: "Tính: 4 ÷ 0.2 =", options:["20","2","18","22"], correct: 0 },
+  { text: "Tính: 9 ÷ 0.3 =", options:["30","27","29","28"], correct: 0 },
+  { text: "Tính: 12 ÷ 0.4 =", options:["30","28","29","32"], correct: 0 },
+
+  // Bài 40: Chia một số thập phân cho một số thập phân
+  { text: "Tính: 2.5 ÷ 0.5 =", options:["5","4.5","6","5.5"], correct: 0 },
+  { text: "Tính: 0.6 ÷ 0.2 =", options:["3","2.5","3.5","2.8"], correct: 0 },
+  { text: "Tính: 1.2 ÷ 0.4 =", options:["3","2.8","3.2","3.1"], correct: 0 },
+  { text: "Tính: 0.9 ÷ 0.3 =", options:["3","2.9","3.1","2.8"], correct: 0 },
+  { text: "Tính: 4.8 ÷ 0.6 =", options:["8","7.8","8.2","7.5"], correct: 0 },
+
+  // Bài 41: Em làm được những gì – Tiết 1
+  { text: "Một mảnh đất dài 4.5 m, rộng 2 m. Diện tích là:", options:["9 m²","8.9 m²","9.1 m²","8.8 m²"], correct: 0 },
+  { text: "Một túi gạo 3 kg, thêm 1.25 kg nữa. Tổng khối lượng là:", options:["4.25 kg","4.2 kg","4.3 kg","4.15 kg"], correct: 0 },
+  { text: "Một thùng nước 5.5 l, rót ra 2.1 l. Còn lại:", options:["3.4 l","3.35 l","3.5 l","3.3 l"], correct: 0 },
+  { text: "Chiều dài tấm vải 6.2 m, cắt đi 2.4 m. Còn lại:", options:["3.8 m","3.75 m","3.85 m","3.7 m"], correct: 0 },
+  { text: "Một khối gỗ 4.2 kg, lấy đi 1.6 kg. Còn lại:", options:["2.6 kg","2.55 kg","2.65 kg","2.5 kg"], correct: 0 }
+],
+/* ===== TUẦN 14: Em làm được – Thực hành – Hình tam giác – Diện tích hình tam giác ===== */
+week14: [
+  // Bài 41: Em làm được những gì – Tiết 2
+  { text: "Một mảnh đất dài 5 m, rộng 2.5 m. Diện tích là:", options:["12.5 m²","12 m²","13 m²","12.6 m²"], correct: 0 },
+  { text: "Một túi gạo nặng 3.6 kg, thêm 1.4 kg nữa. Tổng khối lượng là:", options:["5 kg","4.9 kg","5.1 kg","5.2 kg"], correct: 0 },
+  { text: "Một thùng nước 6 l, rót ra 2.25 l. Còn lại:", options:["3.75 l","3.7 l","3.8 l","3.65 l"], correct: 0 },
+  { text: "Chiều dài tấm vải 7.2 m, cắt đi 3.5 m. Còn lại:", options:["3.7 m","3.65 m","3.75 m","3.8 m"], correct: 0 },
+  { text: "Một khối gỗ 5.8 kg, lấy đi 2.1 kg. Còn lại:", options:["3.7 kg","3.6 kg","3.75 kg","3.8 kg"], correct: 0 },
+
+  // Bài 42: Thực hành và trải nghiệm
+  { text: "Tính nhanh: 2.5 + 3.75 =", options:["6.25","6.2","6.3","6.1"], correct: 0 },
+  { text: "Tính nhanh: 5.6 – 2.35 =", options:["3.25","3.2","3.3","3.15"], correct: 0 },
+  { text: "Tính nhanh: 1.2 × 3 =", options:["3.6","3.5","3.7","3.65"], correct: 0 },
+  { text: "Tính nhanh: 4.8 ÷ 0.4 =", options:["12","11.8","12.2","12.1"], correct: 0 },
+  { text: "Tính nhanh: 0.36 ÷ 0.1 =", options:["3.6","3.5","3.7","3.65"], correct: 0 },
+
+  // Bài 43: Hình tam giác
+  { text: "Tam giác có đáy 5 cm, chiều cao 4 cm. Diện tích là:", options:["10 cm²","9 cm²","10.5 cm²","11 cm²"], correct: 0 },
+  { text: "Tam giác có đáy 6 cm, chiều cao 3 cm. Diện tích là:", options:["9 cm²","9.5 cm²","10 cm²","8.5 cm²"], correct: 0 },
+  { text: "Tam giác có đáy 8 cm, chiều cao 5 cm. Diện tích là:", options:["20 cm²","19 cm²","20.5 cm²","21 cm²"], correct: 0 },
+  { text: "Tam giác có đáy 7 cm, chiều cao 6 cm. Diện tích là:", options:["21 cm²","20.5 cm²","22 cm²","21.5 cm²"], correct: 0 },
+  { text: "Tam giác có đáy 10 cm, chiều cao 2 cm. Diện tích là:", options:["10 cm²","9.5 cm²","11 cm²","10.5 cm²"], correct: 0 },
+
+  // Bài 44: Diện tích hình tam giác – Tiết 1
+  { text: "Tam giác có đáy 12 cm, chiều cao 4 cm. Diện tích là:", options:["24 cm²","23 cm²","25 cm²","24.5 cm²"], correct: 0 },
+  { text: "Tam giác có đáy 15 cm, chiều cao 6 cm. Diện tích là:", options:["45 cm²","44 cm²","46 cm²","45.5 cm²"], correct: 0 },
+  { text: "Tam giác có đáy 9 cm, chiều cao 5 cm. Diện tích là:", options:["22.5 cm²","22 cm²","23 cm²","22.8 cm²"], correct: 0 },
+  { text: "Tam giác có đáy 8 cm, chiều cao 7 cm. Diện tích là:", options:["28 cm²","27.5 cm²","28.5 cm²","29 cm²"], correct: 0 },
+  { text: "Tam giác có đáy 6 cm, chiều cao 9 cm. Diện tích là:", options:["27 cm²","26 cm²","28 cm²","27.5 cm²"], correct: 0 },
+
+  // Bài 44: Diện tích hình tam giác – Tiết 2
+  { text: "Tam giác có đáy 14 cm, chiều cao 5 cm. Diện tích là:", options:["35 cm²","34 cm²","36 cm²","35.5 cm²"], correct: 0 },
+  { text: "Tam giác có đáy 10 cm, chiều cao 8 cm. Diện tích là:", options:["40 cm²","39 cm²","41 cm²","40.5 cm²"], correct: 0 },
+  { text: "Tam giác có đáy 7 cm, chiều cao 9 cm. Diện tích là:", options:["31.5 cm²","31 cm²","32 cm²","30.5 cm²"], correct: 0 },
+  { text: "Tam giác có đáy 5 cm, chiều cao 10 cm. Diện tích là:", options:["25 cm²","24.5 cm²","26 cm²","25.5 cm²"], correct: 0 },
+  { text: "Tam giác có đáy 12 cm, chiều cao 3 cm. Diện tích là:", options:["18 cm²","17.5 cm²","18.5 cm²","19 cm²"], correct: 0 }
+],
+/* ===== TUẦN 15: Hình thang – Diện tích hình thang – Hình tròn – Chu vi hình tròn ===== */
+week15: [
+  // Bài 45: Hình thang
+  { text: "Hình thang có đáy lớn 8 cm, đáy nhỏ 5 cm, chiều cao 4 cm. Diện tích là:", options:["26 cm²","24 cm²","25 cm²","27 cm²"], correct: 0 },
+  { text: "Hình thang có đáy lớn 10 cm, đáy nhỏ 6 cm, chiều cao 5 cm. Diện tích là:", options:["40 cm²","38 cm²","42 cm²","39 cm²"], correct: 0 },
+  { text: "Hình thang có đáy lớn 12 cm, đáy nhỏ 8 cm, chiều cao 3 cm. Diện tích là:", options:["30 cm²","28 cm²","32 cm²","29 cm²"], correct: 0 },
+  { text: "Hình thang có đáy lớn 9 cm, đáy nhỏ 5 cm, chiều cao 6 cm. Diện tích là:", options:["42 cm²","41 cm²","43 cm²","40 cm²"], correct: 0 },
+  { text: "Hình thang có đáy lớn 7 cm, đáy nhỏ 3 cm, chiều cao 4 cm. Diện tích là:", options:["20 cm²","19 cm²","21 cm²","18 cm²"], correct: 0 },
+
+  // Bài 46: Diện tích hình thang – Tiết 1
+  { text: "Hình thang có đáy lớn 14 cm, đáy nhỏ 6 cm, chiều cao 5 cm. Diện tích là:", options:["50 cm²","48 cm²","51 cm²","49 cm²"], correct: 0 },
+  { text: "Hình thang có đáy lớn 12 cm, đáy nhỏ 8 cm, chiều cao 7 cm. Diện tích là:", options:["70 cm²","68 cm²","71 cm²","69 cm²"], correct: 0 },
+  { text: "Hình thang có đáy lớn 9 cm, đáy nhỏ 5 cm, chiều cao 4 cm. Diện tích là:", options:["28 cm²","27 cm²","29 cm²","30 cm²"], correct: 0 },
+  { text: "Hình thang có đáy lớn 15 cm, đáy nhỏ 10 cm, chiều cao 6 cm. Diện tích là:", options:["75 cm²","72 cm²","76 cm²","74 cm²"], correct: 0 },
+  { text: "Hình thang có đáy lớn 8 cm, đáy nhỏ 4 cm, chiều cao 5 cm. Diện tích là:", options:["30 cm²","28 cm²","31 cm²","29 cm²"], correct: 0 },
+
+  // Bài 46: Diện tích hình thang – Tiết 2
+  { text: "Hình thang có đáy lớn 20 cm, đáy nhỏ 10 cm, chiều cao 5 cm. Diện tích là:", options:["75 cm²","70 cm²","80 cm²","72.5 cm²"], correct: 0 },
+  { text: "Hình thang có đáy lớn 18 cm, đáy nhỏ 12 cm, chiều cao 4 cm. Diện tích là:", options:["60 cm²","55 cm²","62 cm²","58 cm²"], correct: 0 },
+  { text: "Hình thang có đáy lớn 16 cm, đáy nhỏ 8 cm, chiều cao 3 cm. Diện tích là:", options:["36 cm²","35 cm²","37 cm²","34 cm²"], correct: 0 },
+  { text: "Hình thang có đáy lớn 14 cm, đáy nhỏ 6 cm, chiều cao 7 cm. Diện tích là:", options:["70 cm²","68 cm²","72 cm²","69 cm²"], correct: 0 },
+  { text: "Hình thang có đáy lớn 10 cm, đáy nhỏ 5 cm, chiều cao 4 cm. Diện tích là:", options:["30 cm²","28 cm²","31 cm²","29 cm²"], correct: 0 },
+
+  // Bài 47: Đường tròn, hình tròn
+  { text: "Hình tròn có bán kính 7 cm. Diện tích là:", options:["154 cm²","150 cm²","155 cm²","152 cm²"], correct: 0 },
+  { text: "Hình tròn có bán kính 5 cm. Diện tích là:", options:["78.5 cm²","75 cm²","80 cm²","77 cm²"], correct: 0 },
+  { text: "Hình tròn có bán kính 10 cm. Diện tích là:", options:["314 cm²","310 cm²","315 cm²","312 cm²"], correct: 0 },
+  { text: "Hình tròn có bán kính 6 cm. Diện tích là:", options:["113.04 cm²","110 cm²","115 cm²","112 cm²"], correct: 0 },
+  { text: "Hình tròn có bán kính 8 cm. Diện tích là:", options:["201.06 cm²","200 cm²","202 cm²","198 cm²"], correct: 0 },
+
+  // Bài 48: Chu vi hình tròn – Tiết 1
+  { text: "Hình tròn có bán kính 7 cm. Chu vi là:", options:["43.96 cm","44 cm","44.1 cm","43.5 cm"], correct: 0 },
+  { text: "Hình tròn có bán kính 5 cm. Chu vi là:", options:["31.4 cm","31 cm","31.5 cm","30.5 cm"], correct: 0 },
+  { text: "Hình tròn có bán kính 10 cm. Chu vi là:", options:["62.8 cm","63 cm","62 cm","61.5 cm"], correct: 0 },
+  { text: "Hình tròn có bán kính 6 cm. Chu vi là:", options:["37.68 cm","37.7 cm","38 cm","37.5 cm"], correct: 0 },
+  { text: "Hình tròn có bán kính 8 cm. Chu vi là:", options:["50.24 cm","50 cm","50.5 cm","51 cm"], correct: 0 }
+],
+/* ===== TUẦN 16: Chu vi, Diện tích hình tròn – Em làm được – Thực hành ===== */
+week16: [
+  // Bài 48: Chu vi hình tròn – Tiết 2
+  { text: "Hình tròn có bán kính 9 cm. Chu vi là:", options:["56.52 cm","56.5 cm","57 cm","55.5 cm"], correct: 0 },
+  { text: "Hình tròn có bán kính 12 cm. Chu vi là:", options:["75.36 cm","75 cm","76 cm","74.5 cm"], correct: 0 },
+  { text: "Hình tròn có bán kính 15 cm. Chu vi là:", options:["94.2 cm","94 cm","95 cm","93.5 cm"], correct: 0 },
+  { text: "Hình tròn có bán kính 6.5 cm. Chu vi là:", options:["40.82 cm","40.8 cm","41 cm","40.5 cm"], correct: 0 },
+  { text: "Hình tròn có bán kính 8.5 cm. Chu vi là:", options:["53.38 cm","53.4 cm","53 cm","52.8 cm"], correct: 0 },
+
+  // Bài 49: Diện tích hình tròn – Tiết 1
+  { text: "Hình tròn bán kính 7 cm. Diện tích là:", options:["153.86 cm²","154 cm²","155 cm²","152 cm²"], correct: 0 },
+  { text: "Hình tròn bán kính 5 cm. Diện tích là:", options:["78.5 cm²","78 cm²","79 cm²","77.5 cm²"], correct: 0 },
+  { text: "Hình tròn bán kính 10 cm. Diện tích là:", options:["314 cm²","315 cm²","310 cm²","312 cm²"], correct: 0 },
+  { text: "Hình tròn bán kính 6 cm. Diện tích là:", options:["113.04 cm²","113 cm²","114 cm²","112 cm²"], correct: 0 },
+  { text: "Hình tròn bán kính 8 cm. Diện tích là:", options:["201.06 cm²","201 cm²","202 cm²","200 cm²"], correct: 0 },
+
+  // Bài 49: Diện tích hình tròn – Tiết 2
+  { text: "Hình tròn bán kính 9 cm. Diện tích là:", options:["254.34 cm²","254 cm²","255 cm²","253 cm²"], correct: 0 },
+  { text: "Hình tròn bán kính 12 cm. Diện tích là:", options:["452.16 cm²","452 cm²","450 cm²","453 cm²"], correct: 0 },
+  { text: "Hình tròn bán kính 15 cm. Diện tích là:", options:["706.5 cm²","707 cm²","705 cm²","710 cm²"], correct: 0 },
+  { text: "Hình tròn bán kính 6.5 cm. Diện tích là:", options:["132.73 cm²","132.7 cm²","133 cm²","132 cm²"], correct: 0 },
+  { text: "Hình tròn bán kính 8.5 cm. Diện tích là:", options:["226.98 cm²","227 cm²","226 cm²","228 cm²"], correct: 0 },
+
+  // Bài 50: Em làm được những gì
+  { text: "Một mảnh đất hình tròn bán kính 7 m. Diện tích là:", options:["153.86 m²","154 m²","155 m²","152 m²"], correct: 0 },
+  { text: "Một bể nước hình tròn bán kính 5 m. Diện tích là:", options:["78.5 m²","78 m²","79 m²","77.5 m²"], correct: 0 },
+  { text: "Một tấm thảm tròn bán kính 10 m. Diện tích là:", options:["314 m²","315 m²","310 m²","312 m²"], correct: 0 },
+  { text: "Một bàn hình tròn bán kính 6 cm. Diện tích là:", options:["113.04 cm²","113 cm²","114 cm²","112 cm²"], correct: 0 },
+  { text: "Một cửa sổ hình tròn bán kính 8 cm. Diện tích là:", options:["201.06 cm²","201 cm²","202 cm²","200 cm²"], correct: 0 },
+
+  // Bài 51: Thực hành và trải nghiệm – Tiết 1
+  { text: "Hình tròn bán kính 7 cm. Chu vi là:", options:["43.96 cm","44 cm","44.1 cm","43.5 cm"], correct: 0 },
+  { text: "Hình tròn bán kính 5 cm. Chu vi là:", options:["31.4 cm","31 cm","31.5 cm","30.5 cm"], correct: 0 },
+  { text: "Hình tròn bán kính 10 cm. Chu vi là:", options:["62.8 cm","63 cm","62 cm","61.5 cm"], correct: 0 },
+  { text: "Hình tròn bán kính 6 cm. Chu vi là:", options:["37.68 cm","37.7 cm","38 cm","37.5 cm"], correct: 0 },
+  { text: "Hình tròn bán kính 8 cm. Chu vi là:", options:["50.24 cm","50 cm","50.5 cm","51 cm"], correct: 0 }
+],
+/* ===== TUẦN 17: Thực hành – Ôn tập số thập phân – Ôn tập phép tính ===== */
+week17: [
+  // Bài 51: Thực hành và trải nghiệm – Tiết 2
+  { text: "Hình tròn bán kính 9 cm. Chu vi là:", options:["56.52 cm","56.5 cm","57 cm","55.5 cm"], correct: 0 },
+  { text: "Hình tròn bán kính 12 cm. Chu vi là:", options:["75.36 cm","75 cm","76 cm","74.5 cm"], correct: 0 },
+  { text: "Hình tròn bán kính 15 cm. Chu vi là:", options:["94.2 cm","94 cm","95 cm","93.5 cm"], correct: 0 },
+  { text: "Hình tròn bán kính 6.5 cm. Chu vi là:", options:["40.82 cm","40.8 cm","41 cm","40.5 cm"], correct: 0 },
+  { text: "Hình tròn bán kính 8.5 cm. Chu vi là:", options:["53.38 cm","53.4 cm","53 cm","52.8 cm"], correct: 0 },
+
+  // Bài 52: Ôn tập số thập phân
+  { text: "Tính: 2.5 + 3.75 =", options:["6.25","6.2","6.3","6.1"], correct: 0 },
+  { text: "Tính: 5.6 – 2.35 =", options:["3.25","3.2","3.3","3.15"], correct: 0 },
+  { text: "Tính: 1.2 × 3 =", options:["3.6","3.5","3.7","3.65"], correct: 0 },
+  { text: "Tính: 4.8 ÷ 0.4 =", options:["12","11.8","12.2","12.1"], correct: 0 },
+  { text: "Tính: 0.36 ÷ 0.1 =", options:["3.6","3.5","3.7","3.65"], correct: 0 },
+
+  { text: "Tính: 7.25 + 2.75 =", options:["10","9.9","10.1","10.05"], correct: 0 },
+  { text: "Tính: 6.3 – 1.75 =", options:["4.55","4.5","4.6","4.65"], correct: 0 },
+  { text: "Tính: 3.5 × 2.4 =", options:["8.4","8.5","8.3","8.6"], correct: 0 },
+  { text: "Tính: 12.6 ÷ 3 =", options:["4.2","4.1","4.3","4.25"], correct: 0 },
+  { text: "Tính: 0.81 ÷ 0.9 =", options:["0.9","0.8","1","0.85"], correct: 0 },
+
+  // Bài 53: Ôn tập các phép tính với số thập phân – Tiết 1
+  { text: "Tính: 4.8 + 3.45 – 2.25 =", options:["6","5.9","6.1","6.05"], correct: 0 },
+  { text: "Tính: (5.5 – 2.2) + 1.7 =", options:["5","4.8","5.1","4.9"], correct: 0 },
+  { text: "Tính: 7.2 – (3.2 + 1.5) =", options:["2.5","2.4","2.6","2.55"], correct: 0 },
+  { text: "Tính: (4.5 + 2.3) – 3.1 =", options:["3.7","3.6","3.8","3.65"], correct: 0 },
+  { text: "Tính: (6.25 – 2.15) + 1.4 =", options:["5.5","5.4","5.6","5.45"], correct: 0 },
+
+  // Bài 53: Ôn tập các phép tính với số thập phân – Tiết 2
+  { text: "Tính: 3.5 × 1.2 + 2.1 =", options:["6.3","6.2","6.4","6.25"], correct: 0 },
+  { text: "Tính: (5.4 ÷ 0.9) + 2.6 =", options:["8.6","8.5","8.7","8.55"], correct: 0 },
+  { text: "Tính: 7.2 ÷ 0.6 – 3.5 =", options:["8.5","8.4","8.6","8.45"], correct: 0 },
+  { text: "Tính: (4.8 + 3.2) ÷ 2 =", options:["4","4.1","3.9","4.05"], correct: 0 },
+  { text: "Tính: 9.6 ÷ 1.2 + 3.4 =", options:["11.4","11.2","11.5","11.3"], correct: 0 },
+
+  // Bài 53: Ôn tập các phép tính với số thập phân – Tiết 3
+  { text: "Tính: 6.3 – 2.25 + 1.75 =", options:["5.8","5.7","5.9","5.85"], correct: 0 },
+  { text: "Tính: (3.6 + 4.4) ÷ 2 =", options:["4","3.9","4.1","4.05"], correct: 0 },
+  { text: "Tính: 5.5 × 1.1 – 2.25 =", options:["3.3","3.2","3.4","3.25"], correct: 0 },
+  { text: "Tính: (7.2 ÷ 0.8) + 1.5 =", options:["10.5","10.4","10.6","10.55"], correct: 0 },
+  { text: "Tính: (6.25 – 1.75) ÷ 2 =", options:["2.25","2.2","2.3","2.35"], correct: 0 }
+],
+/* ===== TUẦN 18: Ôn tập hình học, đo lường – Thống kê và xác suất ===== */
+week18: [
+  // Bài 54: Ôn tập hình học và đo lường – Tiết 1
+  { text: "Hình tam giác có đáy 6 cm, chiều cao 4 cm. Diện tích là:", options:["12 cm²","11.5 cm²","12.5 cm²","13 cm²"], correct: 0 },
+  { text: "Hình thang đáy lớn 10 cm, đáy nhỏ 6 cm, chiều cao 5 cm. Diện tích là:", options:["40 cm²","39 cm²","41 cm²","38 cm²"], correct: 0 },
+  { text: "Hình tròn bán kính 7 cm. Diện tích là:", options:["153.86 cm²","154 cm²","155 cm²","152 cm²"], correct: 0 },
+  { text: "Hình tròn bán kính 5 cm. Chu vi là:", options:["31.4 cm","31 cm","31.5 cm","30.5 cm"], correct: 0 },
+  { text: "Hình tam giác đáy 9 cm, chiều cao 6 cm. Diện tích là:", options:["27 cm²","26.5 cm²","27.5 cm²","28 cm²"], correct: 0 },
+
+  // Bài 54: Ôn tập hình học và đo lường – Tiết 2
+  { text: "Hình thang đáy lớn 14 cm, đáy nhỏ 6 cm, chiều cao 5 cm. Diện tích là:", options:["50 cm²","49 cm²","51 cm²","48 cm²"], correct: 0 },
+  { text: "Hình tròn bán kính 9 cm. Chu vi là:", options:["56.52 cm","56.5 cm","57 cm","55.5 cm"], correct: 0 },
+  { text: "Hình tròn bán kính 12 cm. Diện tích là:", options:["452.16 cm²","452 cm²","450 cm²","453 cm²"], correct: 0 },
+  { text: "Hình tam giác đáy 8 cm, chiều cao 7 cm. Diện tích là:", options:["28 cm²","27.5 cm²","28.5 cm²","29 cm²"], correct: 0 },
+  { text: "Hình thang đáy lớn 12 cm, đáy nhỏ 8 cm, chiều cao 3 cm. Diện tích là:", options:["30 cm²","29 cm²","31 cm²","28 cm²"], correct: 0 },
+
+  // Bài 54: Ôn tập hình học và đo lường – Tiết 3
+  { text: "Hình tròn bán kính 6 cm. Diện tích là:", options:["113.04 cm²","113 cm²","114 cm²","112 cm²"], correct: 0 },
+  { text: "Hình thang đáy lớn 18 cm, đáy nhỏ 12 cm, chiều cao 4 cm. Diện tích là:", options:["60 cm²","58 cm²","62 cm²","59 cm²"], correct: 0 },
+  { text: "Hình tam giác đáy 10 cm, chiều cao 5 cm. Diện tích là:", options:["25 cm²","24.5 cm²","26 cm²","25.5 cm²"], correct: 0 },
+  { text: "Hình tròn bán kính 8 cm. Chu vi là:", options:["50.24 cm","50 cm","50.5 cm","51 cm"], correct: 0 },
+  { text: "Hình thang đáy lớn 7 cm, đáy nhỏ 3 cm, chiều cao 4 cm. Diện tích là:", options:["20 cm²","19 cm²","21 cm²","18 cm²"], correct: 0 },
+
+  // Bài 55: Ôn tập một số yếu tố thống kê và xác suất
+  { text: "Số học sinh đạt điểm 10 trong lớp là 4/20. Xác suất là:", options:["0.2","0.25","0.15","0.3"], correct: 1 },
+  { text: "Trong túi có 3 bi đỏ, 2 bi xanh, xác suất rút bi đỏ là:", options:["0.6","0.5","0.4","0.7"], correct: 0 },
+  { text: "Một đồng xu tung 1 lần, xác suất ra mặt sấp là:", options:["0.5","0.4","0.6","0.55"], correct: 0 },
+  { text: "Một túi có 5 viên bi: 2 đỏ, 3 xanh. Xác suất rút bi xanh là:", options:["0.6","0.5","0.4","0.7"], correct: 0 },
+  { text: "Nếu tung một con xúc xắc 1 lần, xác suất ra số chẵn là:", options:["0.5","0.6","0.4","0.55"], correct: 0 },
+
+  { text: "Trong một lớp 25 học sinh, có 10 nam, xác suất chọn 1 học sinh nam là:", options:["0.4","0.35","0.45","0.5"], correct: 0 },
+  { text: "Một túi có 4 bi đỏ, 6 bi trắng, xác suất rút bi trắng là:", options:["0.6","0.5","0.7","0.55"], correct: 0 },
+  { text: "Tung đồng xu 2 lần, xác suất ra ít nhất 1 mặt ngửa là:", options:["0.75","0.5","0.25","0.8"], correct: 0 },
+  { text: "Có 3 quả bóng đỏ, 2 quả bóng xanh. Xác suất chọn bóng đỏ là:", options:["0.6","0.5","0.4","0.7"], correct: 0 },
+  { text: "Trong 20 học sinh, có 5 học sinh tròn tuổi, xác suất chọn học sinh tròn tuổi là:", options:["0.25","0.2","0.3","0.15"], correct: 0 },
+
+  { text: "Trong 10 lần tung xúc xắc, có 6 lần ra số chẵn. Xác suất là:", options:["0.6","0.5","0.7","0.65"], correct: 0 },
+  { text: "Một túi có 2 bi đỏ, 3 bi xanh. Rút 1 bi, xác suất ra bi đỏ là:", options:["0.4","0.5","0.35","0.45"], correct: 0 },
+  { text: "Xác suất chọn 1 học sinh nữ trong lớp 30 học sinh có 18 nữ là:", options:["0.6","0.55","0.5","0.65"], correct: 0 },
+  { text: "Tung đồng xu 1 lần, xác suất ra mặt ngửa là:", options:["0.5","0.6","0.55","0.45"], correct: 0 },
+  { text: "Trong túi có 5 bi đỏ, 5 bi xanh. Xác suất rút bi đỏ là:", options:["0.5","0.6","0.55","0.45"], correct: 0 }
+],
+/* ===== TUẦN 19: Tỉ số phần trăm – Tính tỉ số % – Giá trị % ===== */
+week19: [
+  // Bài 56: Tỉ số phần trăm
+  { text: "25% viết dưới dạng phân số là:", options:["1/4","1/5","1/3","1/2"], correct: 0 },
+  { text: "40% viết dưới dạng số thập phân là:", options:["0.4","0.04","4","0.4"], correct: 0 },
+  { text: "60% của 100 là:", options:["60","50","40","70"], correct: 0 },
+  { text: "75% tương ứng với phân số:", options:["3/4","2/3","5/6","1/2"], correct: 0 },
+  { text: "10% bằng:", options:["0.1","1","0.01","0.001"], correct: 0 },
+
+  // Bài 57: Tính tỉ số phần trăm của hai số – Tiết 1
+  { text: "Tỉ số phần trăm của 20 và 50 là:", options:["40%","30%","50%","60%"], correct: 0 },
+  { text: "Tỉ số phần trăm của 15 và 100 là:", options:["15%","10%","20%","12%"], correct: 0 },
+  { text: "Tỉ số phần trăm của 9 và 12 là:", options:["75%","70%","80%","60%"], correct: 0 },
+  { text: "Tỉ số phần trăm của 8 và 40 là:", options:["20%","25%","15%","30%"], correct: 0 },
+  { text: "Tỉ số phần trăm của 12 và 30 là:", options:["40%","35%","45%","50%"], correct: 0 },
+
+  // Bài 57: Tính tỉ số phần trăm của hai số – Tiết 2
+  { text: "Tỉ số phần trăm của 18 và 24 là:", options:["75%","70%","80%","65%"], correct: 0 },
+  { text: "Tỉ số phần trăm của 5 và 20 là:", options:["25%","20%","30%","15%"], correct: 0 },
+  { text: "Tỉ số phần trăm của 7 và 14 là:", options:["50%","40%","45%","55%"], correct: 0 },
+  { text: "Tỉ số phần trăm của 6 và 15 là:", options:["40%","30%","50%","45%"], correct: 0 },
+  { text: "Tỉ số phần trăm của 9 và 18 là:", options:["50%","55%","48%","60%"], correct: 0 },
+
+  // Bài 58: Tìm giá trị phần trăm của một số – Tiết 1
+  { text: "20% của 80 là:", options:["16","18","14","20"], correct: 0 },
+  { text: "50% của 60 là:", options:["30","25","35","40"], correct: 0 },
+  { text: "10% của 150 là:", options:["15","10","20","12"], correct: 0 },
+  { text: "25% của 200 là:", options:["50","40","60","55"], correct: 0 },
+  { text: "5% của 100 là:", options:["5","10","2","20"], correct: 0 },
+
+  // Bài 58: Tìm giá trị phần trăm – Tiết 2
+  { text: "30% của 90 là:", options:["27","30","25","20"], correct: 0 },
+  { text: "12% của 50 là:", options:["6","5","4","7"], correct: 0 },
+  { text: "15% của 80 là:", options:["12","10","14","15"], correct: 0 },
+  { text: "40% của 70 là:", options:["28","25","30","27"], correct: 0 },
+  { text: "75% của 40 là:", options:["30","28","32","35"], correct: 0 },
+
+  // Câu tổng hợp theo kiểu Em làm được những gì?
+  { text: "Một lớp có 30 học sinh, trong đó 18 bạn là nữ. Tỉ lệ nữ là:", options:["60%","55%","65%","50%"], correct: 0 },
+  { text: "Một cửa hàng giảm giá 20% cho sản phẩm 200 000đ. Số tiền giảm là:", options:["40 000đ","50 000đ","30 000đ","20 000đ"], correct: 0 },
+  { text: "40% của 250 là:", options:["100","90","110","120"], correct: 0 },
+  { text: "Tỉ số phần trăm của 12 và 60 là:", options:["20%","25%","15%","30%"], correct: 0 },
+  { text: "Một hộp có 25 viên, trong đó 5 viên màu đỏ. Tỉ lệ đỏ là:", options:["20%","25%","15%","18%"], correct: 0 }
+],
+/* ===== TUẦN 20: Máy tính cầm tay – Tỉ số phần trăm – Biểu đồ quạt ===== */
+week20: [
+  { text: "Máy tính cầm tay có thể thực hiện phép tính nào?", options:["Cộng, trừ, nhân, chia","Vẽ hình","Đo độ dài","Giải ô chữ"], correct: 0 },
+  { text: "Phím AC trên máy tính dùng để:", options:["Xóa toàn bộ phép tính","Tắt máy","Lưu kết quả","Tính phần trăm"], correct: 0 },
+  { text: "Phím % trên máy tính dùng để tính:", options:["Tỉ số phần trăm","Căn bậc hai","Lũy thừa","Góc"], correct: 0 },
+  { text: "Khi nhập 25% trên máy tính, kết quả tương đương số thập phân nào?", options:["0,25","2,5","25","0,025"], correct: 0 },
+  { text: "Biểu đồ hình quạt tròn dùng để biểu diễn:", options:["Tỉ lệ của từng phần so với toàn bộ","Độ dài","Số đo góc tam giác","Thời gian"], correct: 0 },
+
+  { text: "Máy tính cầm tay hiển thị 8×5= ?", options:["40","35","45","50"], correct: 0 },
+  { text: "Muốn tính 15% của 200 bằng máy tính, bấm:", options:["200 × 15 %","200 + 15 %","200 – 15 %","200 ÷ 15 %"], correct: 0 },
+  { text: "Phím √ trên máy tính dùng để:", options:["Tính căn bậc hai","Tính phần trăm","Làm tròn","Nhân"], correct: 0 },
+  { text: "Số liệu ‘35% học sinh thích Toán’ thuộc dạng:", options:["Tỉ số phần trăm","Số đo góc","Độ dài đoạn thẳng","Diện tích"], correct: 0 },
+  { text: "Biểu đồ quạt tròn có tổng số đo các cung bằng:", options:["360°","180°","90°","100°"], correct: 0 },
+
+  { text: "Máy tính báo 7,5 + 2,5 = ?", options:["10","9","11","12"], correct: 0 },
+  { text: "Phím M+ trên máy tính dùng để:", options:["Cộng giá trị vào bộ nhớ","Xóa bộ nhớ","Nhân giá trị","Làm tròn số"], correct: 0 },
+  { text: "Để chuyển 0,4 sang phần trăm, ta nhân với:", options:["100","10","0,1","0,01"], correct: 0 },
+  { text: "Biểu đồ quạt tròn cho biết:", options:["Tỉ lệ từng phần","Màu sắc","Độ dài đường thẳng","Tọa độ điểm"], correct: 0 },
+  { text: "Khi tính 12 ÷ 4 trên máy tính, ta bấm:", options:["12 ÷ 4 =","12 × 4 =","12 – 4 =","12 + 4 ="], correct: 0 },
+
+  { text: "Máy tính hiển thị 9 × 9 = ?", options:["81","72","90","99"], correct: 0 },
+  { text: "Muốn xóa kết quả vừa nhập, ta dùng phím:", options:["C/CE","ON","M-","%"], correct: 0 },
+  { text: "40% viết dưới dạng phân số là:", options:["40/100","4/10","2/5","Tất cả đều đúng"], correct: 3 },
+  { text: "Trong biểu đồ quạt, phần có góc lớn nhất thể hiện:", options:["Phần chiếm tỉ lệ cao nhất","Màu đẹp nhất","Giá trị nhỏ nhất","Không liên quan"], correct: 0 },
+  { text: "Máy tính hiển thị 25 ÷ 0,5 = ?", options:["50","5","12,5","2"], correct: 0 },
+
+  { text: "Phím M- dùng để:", options:["Trừ giá trị khỏi bộ nhớ","Tắt máy","Xóa màn hình","Chia bộ nhớ"], correct: 0 },
+  { text: "Kết quả 120% viết dạng thập phân là:", options:["1,2","0,12","12","0,012"], correct: 0 },
+  { text: "Một biểu đồ quạt tròn gồm các cung:", options:["Tương ứng từng phần dữ liệu","Bằng nhau","Không liên quan dữ liệu","Luôn 45°"], correct: 0 },
+  { text: "Phím ON trên máy tính dùng để:", options:["Bật nguồn","Xóa kết quả","Lấy %","Nhập phân số"], correct: 0 },
+  { text: "Muốn tính 18% của 150, máy tính cho kết quả:", options:["27","18","15","30"], correct: 0 },
+
+  { text: "Trong biểu đồ quạt, tổng số phần bằng:", options:["100%","10%","50%","200%"], correct: 0 },
+  { text: "Máy tính hiển thị 5² bằng:", options:["25","10","30","20"], correct: 0 },
+  { text: "Phần trăm biểu thị mối quan hệ giữa:", options:["Phần và toàn bộ","Hai góc","Hai cạnh tam giác","Hai đường thẳng"], correct: 0 },
+  { text: "Máy tính hiển thị 0,6 × 100 = ?", options:["60","6","600","0,6"], correct: 0 },
+  { text: "Biểu đồ quạt tròn thường dùng khi:", options:["Cần so sánh tỉ lệ","Cần tính diện tích","Đo cạnh hình vuông","Vẽ biểu đồ cột"], correct: 0 },
+],
+/* ===== TUẦN 21: Biểu đồ quạt tròn – Hình hộp chữ nhật – Hình lập phương – Diện tích xung quanh & toàn phần ===== */
+week21: [
+  { text: "Biểu đồ hình quạt tròn cho biết:", options:["Tỉ lệ từng phần so với tổng","Thời gian","Chu vi","Diện tích"], correct: 0 },
+  { text: "Tổng các góc trong biểu đồ quạt tròn bằng:", options:["360°","180°","90°","100°"], correct: 0 },
+  { text: "Cung lớn nhất trong biểu đồ quạt thể hiện:", options:["Phần chiếm tỉ lệ lớn nhất","Phần ít nhất","Số đo cạnh","Số đo diện tích"], correct: 0 },
+  { text: "Biểu đồ quạt tròn thường dùng khi:", options:["Cần thể hiện tỉ lệ","Cần đo chiều dài","Cần tính chu vi","Cần so sánh số đo góc"], correct: 0 },
+  { text: "Để vẽ biểu đồ quạt, việc đầu tiên là:", options:["Tính tỉ lệ % của từng phần","Tính diện tích","Đo độ dài","Vẽ hình chữ nhật"], correct: 0 },
+
+  { text: "Hình hộp chữ nhật có bao nhiêu mặt?", options:["6","4","5","8"], correct: 0 },
+  { text: "Các mặt của hình hộp chữ nhật là những hình:", options:["Hình chữ nhật","Hình thang","Hình tròn","Hình vuông"], correct: 0 },
+  { text: "Hình hộp chữ nhật có bao nhiêu cạnh?", options:["12","8","6","10"], correct: 0 },
+  { text: "Hình hộp chữ nhật có bao nhiêu đỉnh?", options:["8","6","4","10"], correct: 0 },
+  { text: "Công thức tính diện tích xung quanh hình hộp chữ nhật:", options:["(Chiều cao) × (Chu vi đáy)","Chiều dài × chiều rộng","Chu vi đáy × 2","Diện tích đáy × 6"], correct: 0 },
+
+  { text: "Hình lập phương có bao nhiêu mặt?", options:["6","4","8","12"], correct: 0 },
+  { text: "Các mặt của hình lập phương là những hình:", options:["Hình vuông","Hình chữ nhật","Hình tròn","Hình thoi"], correct: 0 },
+  { text: "Hình lập phương có bao nhiêu cạnh?", options:["12","10","8","6"], correct: 0 },
+  { text: "Hình lập phương có bao nhiêu đỉnh?", options:["8","6","4","12"], correct: 0 },
+  { text: "Các cạnh của hình lập phương:", options:["Bằng nhau","Không bằng nhau","Vuông góc nhau hết","Song song tất cả"], correct: 0 },
+
+  { text: "Công thức diện tích toàn phần hình hộp chữ nhật:", options:["Diện tích xung quanh + 2 diện tích đáy","Chu vi đáy × chiều cao","Cạnh × cạnh × cạnh","Diện tích đáy × 6"], correct: 0 },
+  { text: "Diện tích xung quanh hình lập phương:", options:["4 × cạnh²","6 × cạnh²","2 × cạnh²","cạnh × cạnh × cạnh"], correct: 0 },
+  { text: "Diện tích toàn phần hình lập phương:", options:["6 × cạnh²","4 × cạnh²","2 × cạnh²","8 × cạnh²"], correct: 0 },
+  { text: "Đơn vị đo diện tích thường dùng trong chủ đề này:", options:["cm², m²","cm, m","lít","kg"], correct: 0 },
+  { text: "Diện tích một mặt của hình lập phương có cạnh a là:", options:["a²","2a","4a","a³"], correct: 0 },
+
+  { text: "Biểu đồ quạt tròn thể hiện dữ liệu dưới dạng:", options:["Góc của các cung","Đo độ dài","Đo thể tích","Đếm số điểm"], correct: 0 },
+  { text: "Trong hình hộp chữ nhật, các mặt đối diện nhau thì:", options:["Song song và bằng nhau","Vuông góc nhau","Không liên quan","Luôn là hình vuông"], correct: 0 },
+  { text: "Công thức tính chu vi đáy hình hộp chữ nhật (dài a, rộng b):", options:["2 × (a + b)","a × b","a + b","a × 2 + b"], correct: 0 },
+  { text: "Hình lập phương có tất cả mấy mặt là hình vuông?", options:["6","4","2","8"], correct: 0 },
+  { text: "Để tính diện tích toàn phần, cần tính:", options:["Toàn bộ diện tích các mặt","Chỉ mặt đáy","Chỉ mặt bên","Chỉ mặt trên"], correct: 0 },
+
+  { text: "Nếu hình lập phương có cạnh 5 cm, diện tích toàn phần là:", options:["150 cm²","125 cm²","100 cm²","75 cm²"], correct: 0 },
+  { text: "Một hình hộp chữ nhật có chiều dài 6, rộng 4, cao 3. Chu vi đáy là:", options:["20","12","18","10"], correct: 0 },
+  { text: "Mục đích của bài 'Em làm được những gì?' là:", options:["Ôn tập và củng cố kiến thức","Học bài mới","Làm đồ chơi","Không liên quan"], correct: 0 },
+  { text: "Trong biểu đồ quạt, phần 25% tương ứng với góc:", options:["90°","45°","60°","120°"], correct: 0 },
+  { text: "Một hình hộp chữ nhật có đáy 5 cm × 3 cm. Diện tích đáy là:", options:["15 cm²","8 cm²","10 cm²","25 cm²"], correct: 0 },
+],
+/* ===== TUẦN 22: Hộp chữ nhật – Lập phương – Hình trụ – Thể tích ===== */
+week22: [
+  { text: "Diện tích xung quanh của hình hộp chữ nhật được tính bằng công thức:", options:["(a + b) × 2 × h","a × b × h","a × b × 2","(a + b + c) × h"], correct: 0 },
+  { text: "Diện tích toàn phần của hình hộp chữ nhật bằng:", options:["2(ab + bc + ca)","ab + bc + ca","ab × 6","a × b × c"], correct: 0 },
+  { text: "Hình hộp chữ nhật có các mặt đối diện:", options:["Bằng nhau","Vuông góc nhau","Không bằng nhau","Tùy hình"], correct: 0 },
+  { text: "Số mặt của hình hộp chữ nhật là:", options:["6","4","8","5"], correct: 0 },
+  { text: "Hình hộp chữ nhật có bao nhiêu cạnh?", options:["12","8","6","10"], correct: 0 },
+
+  { text: "Diện tích một mặt của hình lập phương có cạnh a:", options:["a²","4a²","6a²","a³"], correct: 0 },
+  { text: "Diện tích toàn phần của hình lập phương có cạnh a:", options:["6a²","4a²","a³","3a²"], correct: 0 },
+  { text: "Hình lập phương có:", options:["6 mặt đều là hình vuông","6 mặt chữ nhật","4 mặt vuông, 2 mặt chữ nhật","8 mặt"], correct: 0 },
+  { text: "Số cạnh của hình lập phương:", options:["12","6","8","10"], correct: 0 },
+  { text: "Hình lập phương là hình có:", options:["Ba kích thước bằng nhau","Hai kích thước bằng nhau","Một kích thước bằng 0","Không có kích thước"], correct: 0 },
+
+  { text: "Hình trụ có bao nhiêu mặt?", options:["3","2","1","4"], correct: 0 },
+  { text: "Hình trụ có hai mặt đáy là:", options:["Hình tròn","Hình vuông","Hình chữ nhật","Hình tam giác"], correct: 0 },
+  { text: "Mặt xung quanh của hình trụ là hình:", options:["Chữ nhật khi khai triển","Vuông","Tam giác","Hình thoi"], correct: 0 },
+  { text: "Đường cao của hình trụ là đoạn thẳng:", options:["Nối hai tâm hai đáy","Nối hai cạnh","Nối hai điểm bất kỳ","Nối tâm với cạnh"], correct: 0 },
+  { text: "Hình trụ có dạng gần giống:", options:["Lon sữa","Hình lập phương","Hộp quẹt","Hình tam giác"], correct: 0 },
+
+  { text: "Khi em làm được những gì? yêu cầu HS:", options:["Tự đánh giá kiến thức","Làm bài kiểm tra lớn","Vẽ hình nâng cao","Đo đạc ngoài lớp"], correct: 0 },
+  { text: "Trong phần tự đánh giá, học sinh cần:", options:["Đánh dấu vào mức độ hiểu bài","Nộp bài kiểm tra","Nộp sản phẩm","Tra cứu đáp án"], correct: 0 },
+  { text: " ‘Em làm được những gì?’ giúp HS:", options:["Nhận biết tiến bộ của bản thân","Chỉ xem lại bài cũ","Không liên quan đến học tập","Tự chấm điểm bạn"], correct: 0 },
+  { text: "Một hoạt động thường có trong bài ‘Em làm được những gì?’:", options:["Tự nhận xét","Đo chiều cao","Ghi nhật ký","Tô màu"], correct: 0 },
+  { text: "Mục tiêu chính của bài ‘Em làm được những gì?’:", options:["Đánh giá năng lực đã học","Học kiến thức mới","Thực hành ngoài sân","Giao bài nhóm"], correct: 0 },
+
+  { text: "Thể tích là:", options:["Độ lớn phần không gian mà vật chiếm","Độ dài của vật","Diện tích bề mặt","Khối lượng vật"], correct: 0 },
+  { text: "Đơn vị đo thể tích cơ bản là:", options:["m³","m","cm²","kg"], correct: 0 },
+  { text: "Thể tích cho biết:", options:["Vật chiếm chỗ bao nhiêu","Vật nặng bao nhiêu","Vật dài bao nhiêu","Vật có mấy cạnh"], correct: 0 },
+  { text: "Trong thực tế, thể tích được dùng để đo:", options:["Thùng chứa","Chiều dài bàn","Diện tích tường","Khối lượng nước"], correct: 0 },
+  { text: "Một hình có kích thước càng lớn thì thể tích:", options:["Càng lớn","Càng nhỏ","Không đổi","Phụ thuộc màu sắc"], correct: 0 },
+
+  { text: "Hình lập phương cạnh 2 cm có diện tích toàn phần:", options:["24 cm²","12 cm²","8 cm²","4 cm²"], correct: 0 },
+  { text: "Hình hộp chữ nhật có a=3, b=4, h=5. Diện tích xung quanh:", options:["70","60","30","40"], correct: 1 }, 
+  { text: "Hình trụ có hai mặt đáy giống nhau về:", options:["Hình dạng và kích thước","Chỉ hình dạng","Chỉ kích thước","Không liên quan"], correct: 0 },
+  { text: "Mặt xung quanh hình hộp chữ nhật gồm:", options:["4 hình chữ nhật","4 hình vuông","2 hình vuông, 2 hình tròn","3 hình vuông, 1 hình tròn"], correct: 0 },
+  { text: "Diện tích toàn phần hình hộp chữ nhật tăng khi:", options:["Một kích thước tăng","Một kích thước giảm","Không phụ thuộc kích thước","Tăng màu sắc"], correct: 0 }
+],
+/* ===== TUẦN 23: Thể tích – cm³ – dm³ – m³ ===== */
+week23: [
+  { text: "Hình lập phương có cạnh a có thể tích:", options:["a³","6a²","a²","3a"], correct: 0 },
+  { text: "Thể tích hình hộp chữ nhật bằng:", options:["a × b × c","(a + b + c) × 2","a × b × 2","a² × b²"], correct: 0 },
+  { text: "Đơn vị đo thể tích nhỏ nhất trong các đơn vị sau:", options:["cm³","dm³","m³","lít"], correct: 0 },
+  { text: "1 dm³ bằng:", options:["1 lít","10 lít","0.1 lít","100 lít"], correct: 0 },
+  { text: "1 m³ bằng:", options:["1000 dm³","100 dm³","10 dm³","10 000 dm³"], correct: 0 },
+
+  { text: "1 cm³ là thể tích của hình lập phương có cạnh:", options:["1 cm","1 mm","1 dm","10 cm"], correct: 0 },
+  { text: "1 dm³ bằng bao nhiêu cm³?", options:["1000","100","10 000","10"], correct: 0 },
+  { text: "Thể tích đo bằng đơn vị:", options:["m³, dm³, cm³","m, dm, cm","m², dm², cm²","kg, g"], correct: 0 },
+  { text: "Để đo thể tích chất lỏng, người ta thường dùng:", options:["Lít","Mét","Mét vuông","Gam"], correct: 0 },
+  { text: "1 m³ bằng bao nhiêu lít?", options:["1000 lít","100 lít","10 000 lít","500 lít"], correct: 0 },
+
+  { text: "1 dm³ có thể gọi là:", options:["1 lít","10 lít","0.1 lít","100 lít"], correct: 0 },
+  { text: "Đề-ti-mét khối kí hiệu là:", options:["dm³","dm²","dm","dm⁴"], correct: 0 },
+  { text: "Một hình lập phương cạnh 4 cm có thể tích:", options:["64 cm³","16 cm³","32 cm³","48 cm³"], correct: 0 },
+  { text: "Một thùng có thể tích 2 dm³ tức là:", options:["2 lít","20 lít","200 ml","2000 lít"], correct: 0 },
+  { text: "3 dm³ bằng bao nhiêu cm³?", options:["3000","30","300","30 000"], correct: 0 },
+
+  { text: "1 m³ bằng bao nhiêu cm³?", options:["1 000 000","10 000","100 000","1 000"], correct: 0 },
+  { text: "1 lít bằng:", options:["1 dm³","10 dm³","0.1 dm³","100 dm³"], correct: 0 },
+  { text: "1 cm³ bằng:", options:["1 ml","1 lít","0.1 lít","10 ml"], correct: 0 },
+  { text: "Bình có dung tích 500 ml tương đương:", options:["500 cm³","5 dm³","0.5 m³","50 cm³"], correct: 0 },
+  { text: "Đơn vị lớn nhất trong các đơn vị thể tích sau:", options:["m³","dm³","cm³","ml"], correct: 0 },
+
+  { text: "Thể tích hình hộp chữ nhật có chiều dài tăng thì:", options:["Thể tích tăng","Thể tích giảm","Không thay đổi","Không xác định"], correct: 0 },
+  { text: "Thể tích hình lập phương cạnh 5 cm:", options:["125 cm³","25 cm³","100 cm³","150 cm³"], correct: 0 },
+  { text: "Hình lập phương cạnh gấp đôi thì thể tích:", options:["Tăng 8 lần","Tăng 4 lần","Tăng 2 lần","Không đổi"], correct: 0 },
+  { text: "Một hộp có kích thước 2dm × 3dm × 4dm. Thể tích:", options:["24 dm³","12 dm³","14 dm³","9 dm³"], correct: 0 },
+  { text: "Một vật có thể tích 0,5 dm³ là:", options:["0.5 lít","5 lít","50 lít","0.05 lít"], correct: 0 },
+
+  { text: "Hình hộp chữ nhật dài 10 cm, rộng 5 cm, cao 2 cm. Thể tích:", options:["100 cm³","50 cm³","20 cm³","200 cm³"], correct: 0 },
+  { text: "Một bể nước 1 m³ chứa được:", options:["1000 lít nước","100 lít nước","500 lít nước","10 000 lít nước"], correct: 0 },
+  { text: "Đơn vị phù hợp để đo thể tích hộp sữa nhỏ:", options:["cm³","m³","dm³","m²"], correct: 0 },
+  { text: "Đơn vị phù hợp để đo thể tích bể bơi:", options:["m³","cm³","ml","dm³"], correct: 0 },
+  { text: "Thể tích 2000 cm³ tương đương:", options:["2 dm³","20 dm³","200 dm³","0.2 dm³"], correct: 0 }
+],
+/* ===== TUẦN 24: Chu vi – Diện tích một số hình phẳng ===== */
+week24: [
+  { text: "Công thức tính chu vi hình chữ nhật?", options:["(D + R) × 2","D × R","D × 2","R × 2"], correct: 0 },
+  { text: "Công thức tính diện tích hình chữ nhật?", options:["D × R","(D + R) × 2","D + R","2D + 2R"], correct: 0 },
+  { text: "Công thức tính chu vi hình vuông?", options:["4 × cạnh","cạnh × cạnh","cạnh + cạnh","2 × cạnh"], correct: 0 },
+  { text: "Công thức tính diện tích hình vuông?", options:["cạnh × cạnh","4 × cạnh","cạnh + cạnh","cạnh × 2"], correct: 0 },
+  { text: "Hình chữ nhật có chiều dài 12 cm, rộng 5 cm. Chu vi là?", options:["34 cm","30 cm","24 cm","40 cm"], correct: 0 },
+  { text: "Hình chữ nhật có chiều dài 15 cm, rộng 4 cm. Diện tích là?", options:["60 cm²","19 cm²","30 cm²","90 cm²"], correct: 0 },
+  { text: "Hình vuông cạnh 6 cm có chu vi là?", options:["24 cm","36 cm","12 cm","18 cm"], correct: 0 },
+  { text: "Hình vuông cạnh 7 cm có diện tích là?", options:["49 cm²","28 cm²","21 cm²","14 cm²"], correct: 0 },
+  { text: "Chu vi hình chữ nhật là 30 cm, chiều dài 10 cm. Chiều rộng là?", options:["5 cm","10 cm","8 cm","6 cm"], correct: 0 },
+  { text: "Diện tích hình chữ nhật là 48 cm², chiều dài 8 cm. Chiều rộng là?", options:["6 cm","8 cm","4 cm","12 cm"], correct: 0 },
+
+  { text: "Hình chữ nhật có D = 20 cm, R = 6 cm. Diện tích là?", options:["120 cm²","52 cm²","26 cm²","200 cm²"], correct: 0 },
+  { text: "Hình chữ nhật có D = 20 cm, R = 6 cm. Chu vi là?", options:["52 cm","40 cm","46 cm","60 cm"], correct: 0 },
+  { text: "Hình vuông có cạnh 9 cm. Chu vi là?", options:["36 cm","27 cm","18 cm","45 cm"], correct: 0 },
+  { text: "Hình vuông có cạnh 9 cm. Diện tích là?", options:["81 cm²","36 cm²","18 cm²","72 cm²"], correct: 0 },
+
+  { text: "Một hình vuông cạnh gấp đôi. Diện tích tăng gấp…?", options:["4 lần","2 lần","3 lần","8 lần"], correct: 0 },
+  { text: "Một hình chữ nhật có diện tích 35 cm², chiều rộng 5 cm. Chiều dài?", options:["7 cm","5 cm","6 cm","10 cm"], correct: 0 },
+  { text: "Chu vi hình vuông là 48 cm. Cạnh hình vuông là?", options:["12 cm","10 cm","14 cm","8 cm"], correct: 0 },
+  { text: "Chu vi hình chữ nhật là 50 cm, chiều rộng 7 cm. Chiều dài?", options:["18 cm","25 cm","15 cm","20 cm"], correct: 0 },
+  { text: "Diện tích hình vuông là 64 cm². Cạnh là?", options:["8 cm","6 cm","10 cm","7 cm"], correct: 0 },
+  { text: "Diện tích hình chữ nhật là 45 cm², chiều dài 9 cm. Chiều rộng?", options:["5 cm","6 cm","7 cm","4 cm"], correct: 0 },
+
+  { text: "Hình chữ nhật có D = 30 cm, R = 10 cm. Diện tích?", options:["300 cm²","200 cm²","400 cm²","150 cm²"], correct: 0 },
+  { text: "Hình chữ nhật có D = 30 cm, R = 10 cm. Chu vi?", options:["80 cm","60 cm","70 cm","50 cm"], correct: 0 },
+  { text: "Hình vuông có chu vi 32 cm. Diện tích?", options:["64 cm²","32 cm²","16 cm²","128 cm²"], correct: 0 },
+  { text: "Hình vuông có cạnh 11 cm. Chu vi?", options:["44 cm","22 cm","33 cm","55 cm"], correct: 0 },
+  { text: "Hình vuông có cạnh 11 cm. Diện tích?", options:["121 cm²","44 cm²","55 cm²","99 cm²"], correct: 0 },
+
+  { text: "Dạng hình chữ nhật có D = 9 cm, R = 3 cm. Chu vi?", options:["24 cm","18 cm","30 cm","12 cm"], correct: 0 },
+  { text: "Dạng hình chữ nhật có D = 9 cm, R = 3 cm. Diện tích?", options:["27 cm²","12 cm²","36 cm²","18 cm²"], correct: 0 },
+  { text: "Chu vi hình vuông là 20 cm. Cạnh?", options:["5 cm","4 cm","6 cm","10 cm"], correct: 0 },
+  { text: "Hình chữ nhật có chu vi 42 cm, chiều dài 14 cm. Chiều rộng?", options:["7 cm","5 cm","8 cm","6 cm"], correct: 0 },
+  { text: "Diện tích hình vuông là 100 cm². Chu vi?", options:["40 cm","20 cm","50 cm","30 cm"], correct: 0 }
+],
+/* ===== TUẦN 25: Thực hành – Đơn vị thời gian – Cộng số đo thời gian ===== */
+week25: [
+  { text: "1 giờ = bao nhiêu phút?", options:["60 phút","100 phút","30 phút","45 phút"], correct: 0 },
+  { text: "1 phút = bao nhiêu giây?", options:["60 giây","100 giây","30 giây","10 giây"], correct: 0 },
+  { text: "1 ngày có bao nhiêu giờ?", options:["24 giờ","12 giờ","48 giờ","30 giờ"], correct: 0 },
+  { text: "1 tuần có bao nhiêu ngày?", options:["7 ngày","5 ngày","6 ngày","10 ngày"], correct: 0 },
+  { text: "1 năm không nhuận có bao nhiêu ngày?", options:["365 ngày","366 ngày","360 ngày","364 ngày"], correct: 0 },
+  
+  { text: "1 năm nhuận có bao nhiêu ngày?", options:["366 ngày","365 ngày","364 ngày","360 ngày"], correct: 0 },
+  { text: "1 thế kỉ = bao nhiêu năm?", options:["100 năm","10 năm","50 năm","500 năm"], correct: 0 },
+  { text: "3 giờ 20 phút = bao nhiêu phút?", options:["200 phút","180 phút","220 phút","190 phút"], correct: 0 },
+  { text: "120 phút = bao nhiêu giờ?", options:["2 giờ","1 giờ","3 giờ","4 giờ"], correct: 0 },
+  { text: "90 phút = bao nhiêu giờ?", options:["1,5 giờ","1 giờ","2 giờ","0,5 giờ"], correct: 0 },
+
+  { text: "Cộng: 2 giờ 15 phút + 1 giờ 20 phút = ?", options:["3 giờ 35 phút","3 giờ 25 phút","4 giờ 35 phút","2 giờ 45 phút"], correct: 0 },
+  { text: "Cộng: 45 phút + 30 phút = ?", options:["75 phút","60 phút","90 phút","80 phút"], correct: 0 },
+  { text: "Cộng: 1 giờ 50 phút + 25 phút = ?", options:["2 giờ 15 phút","2 giờ 05 phút","1 giờ 75 phút","2 giờ"], correct: 0 },
+  { text: "Cộng: 3 giờ 40 phút + 50 phút = ?", options:["4 giờ 30 phút","4 giờ","5 giờ","3 giờ 90 phút"], correct: 0 },
+  { text: "Cộng: 25 phút + 25 phút = ?", options:["50 phút","40 phút","45 phút","55 phút"], correct: 0 },
+
+  { text: "Đổi: 4 giờ = ? phút", options:["240 phút","200 phút","300 phút","180 phút"], correct: 0 },
+  { text: "Đổi: 2 ngày = ? giờ", options:["48 giờ","24 giờ","36 giờ","12 giờ"], correct: 0 },
+  { text: "Đổi: 1/2 giờ = ? phút", options:["30 phút","20 phút","40 phút","15 phút"], correct: 0 },
+  { text: "Đổi: 1/4 giờ = ? phút", options:["15 phút","10 phút","20 phút","5 phút"], correct: 0 },
+  { text: "Đổi: 300 giây = ? phút", options:["5 phút","3 phút","10 phút","6 phút"], correct: 0 },
+
+  { text: "Tính: 2 giờ 48 phút + 1 giờ 12 phút = ?", options:["4 giờ","3 giờ 60 phút","3 giờ 50 phút","5 giờ"], correct: 0 },
+  { text: "Tính: 1 giờ 35 phút + 40 phút = ?", options:["2 giờ 15 phút","1 giờ 75 phút","2 giờ","3 giờ"], correct: 0 },
+  { text: "Tính: 55 phút + 65 phút = ?", options:["2 giờ","1 giờ 55 phút","1 giờ 50 phút","1 giờ 45 phút"], correct: 0 },
+  { text: "Tính: 2 giờ 20 phút + 2 giờ 50 phút = ?", options:["5 giờ 10 phút","4 giờ 70 phút","5 giờ","6 giờ"], correct: 0 },
+  { text: "Tính: 15 phút + 145 phút = ?", options:["160 phút","3 giờ","150 phút","2 giờ"], correct: 0 },
+
+  { text: "Trong 1 giờ có mấy lần 15 phút?", options:["4 lần","3 lần","5 lần","6 lần"], correct: 0 },
+  { text: "Số lớn hơn: 75 phút hay 1 giờ 10 phút?", options:["75 phút","1 giờ 10 phút","Hai số bằng nhau","Không so sánh được"], correct: 1 },
+  { text: "Số bé hơn: 1 giờ 25 phút hay 90 phút?", options:["90 phút","1 giờ 25 phút","Hai số bằng nhau","Không so sánh được"], correct: 0 },
+  { text: "Điền vào chỗ trống: 1 giờ 10 phút = ... phút", options:["70 phút","60 phút","80 phút","75 phút"], correct: 0 },
+  { text: "Điền vào chỗ trống: 2 giờ 45 phút = ... phút", options:["165 phút","140 phút","160 phút","150 phút"], correct: 0 }
+],
+/* ===== TUẦN 26: Cộng, trừ, nhân, chia số đo thời gian ===== */
+week26: [
+  { text: "Cộng: 3 giờ 45 phút + 2 giờ 30 phút = ?", options:["6 giờ 15 phút","5 giờ 75 phút","5 giờ 15 phút","6 giờ 05 phút"], correct: 0 },
+  { text: "Cộng: 1 giờ 20 phút + 40 phút = ?", options:["2 giờ","2 giờ","2 giờ","2 giờ"], correct: 0 },
+  { text: "Cộng: 2 giờ 50 phút + 1 giờ 15 phút = ?", options:["4 giờ 5 phút","3 giờ 65 phút","3 giờ 55 phút","4 giờ 15 phút"], correct: 0 },
+  { text: "Cộng: 45 phút + 35 phút = ?", options:["1 giờ 20 phút","1 giờ 10 phút","80 phút","70 phút"], correct: 0 },
+  { text: "Cộng: 1 giờ 55 phút + 1 giờ 10 phút = ?", options:["3 giờ 5 phút","3 giờ","3 giờ 15 phút","2 giờ 65 phút"], correct: 0 },
+
+  { text: "Trừ: 3 giờ 30 phút – 1 giờ 45 phút = ?", options:["1 giờ 45 phút","2 giờ 15 phút","1 giờ 35 phút","1 giờ 55 phút"], correct: 0 },
+  { text: "Trừ: 2 giờ 15 phút – 50 phút = ?", options:["1 giờ 25 phút","1 giờ 35 phút","1 giờ 30 phút","1 giờ 20 phút"], correct: 0 },
+  { text: "Trừ: 4 giờ – 2 giờ 40 phút = ?", options:["1 giờ 20 phút","2 giờ 20 phút","1 giờ 30 phút","2 giờ"], correct: 0 },
+  { text: "Trừ: 5 giờ 10 phút – 3 giờ 25 phút = ?", options:["1 giờ 45 phút","1 giờ 55 phút","2 giờ 15 phút","2 giờ 25 phút"], correct: 0 },
+  { text: "Trừ: 2 giờ 50 phút – 1 giờ 35 phút = ?", options:["1 giờ 15 phút","1 giờ 05 phút","1 giờ 10 phút","1 giờ 20 phút"], correct: 0 },
+
+  { text: "Nhân: 1 giờ 30 phút × 2 = ?", options:["3 giờ","2 giờ 30 phút","2 giờ","3 giờ 30 phút"], correct: 0 },
+  { text: "Nhân: 45 phút × 3 = ?", options:["2 giờ 15 phút","2 giờ","2 giờ 5 phút","1 giờ 45 phút"], correct: 0 },
+  { text: "Nhân: 2 giờ × 4 = ?", options:["8 giờ","6 giờ","10 giờ","7 giờ"], correct: 0 },
+  { text: "Nhân: 30 phút × 5 = ?", options:["2 giờ 30 phút","2 giờ","2 giờ 15 phút","3 giờ"], correct: 0 },
+  { text: "Nhân: 1 giờ 20 phút × 3 = ?", options:["4 giờ","3 giờ 60 phút","4 giờ","4 giờ"], correct: 0 },
+
+  { text: "Chia: 3 giờ ÷ 3 = ?", options:["1 giờ","1 giờ 15 phút","1 giờ 10 phút","1 giờ 05 phút"], correct: 0 },
+  { text: "Chia: 2 giờ 30 phút ÷ 5 = ?", options:["30 phút","25 phút","40 phút","35 phút"], correct: 0 },
+  { text: "Chia: 1 giờ 20 phút ÷ 4 = ?", options:["20 phút","15 phút","25 phút","30 phút"], correct: 0 },
+  { text: "Chia: 4 giờ ÷ 2 = ?", options:["2 giờ","2 giờ 10 phút","1 giờ 50 phút","2 giờ 15 phút"], correct: 0 },
+  { text: "Chia: 90 phút ÷ 3 = ?", options:["30 phút","25 phút","35 phút","40 phút"], correct: 0 },
+
+  { text: "Cộng: 2 giờ 45 phút + 1 giờ 35 phút = ?", options:["4 giờ 20 phút","3 giờ 80 phút","4 giờ 10 phút","4 giờ 30 phút"], correct: 0 },
+  { text: "Trừ: 5 giờ – 2 giờ 50 phút = ?", options:["2 giờ 10 phút","2 giờ 20 phút","2 giờ 5 phút","2 giờ"], correct: 0 },
+  { text: "Nhân: 50 phút × 3 = ?", options:["2 giờ 30 phút","2 giờ 20 phút","2 giờ 10 phút","2 giờ 25 phút"], correct: 0 },
+  { text: "Chia: 3 giờ 15 phút ÷ 5 = ?", options:["39 phút","40 phút","35 phút","38 phút"], correct: 0 },
+  { text: "Cộng: 1 giờ 50 phút + 2 giờ 15 phút = ?", options:["4 giờ 5 phút","4 giờ","3 giờ 65 phút","4 giờ 10 phút"], correct: 0 },
+
+  { text: "Trừ: 6 giờ – 3 giờ 40 phút = ?", options:["2 giờ 20 phút","2 giờ 10 phút","2 giờ 30 phút","2 giờ 25 phút"], correct: 0 },
+  { text: "Nhân: 1 giờ 15 phút × 4 = ?", options:["5 giờ","4 giờ 45 phút","5 giờ 15 phút","5 giờ 30 phút"], correct: 0 },
+  { text: "Chia: 2 giờ 40 phút ÷ 4 = ?", options:["40 phút","35 phút","45 phút","50 phút"], correct: 0 },
+  { text: "Cộng: 1 giờ 45 phút + 2 giờ 30 phút = ?", options:["4 giờ 15 phút","4 giờ","4 giờ 5 phút","3 giờ 75 phút"], correct: 0 },
+  { text: "Trừ: 3 giờ 20 phút – 1 giờ 50 phút = ?", options:["1 giờ 30 phút","1 giờ 20 phút","1 giờ 25 phút","1 giờ 15 phút"], correct: 0 }
+],
+/* ===== TUẦN 27: Chia số đo thời gian – Tính vận tốc – Vận dụng cộng, trừ, nhân ===== */
+week27: [
+  { text: "Một giờ có bao nhiêu phút?", options:["60 phút","50 phút","100 phút","30 phút"], correct: 0 },
+  { text: "Một phút có bao nhiêu giây?", options:["60 giây","50 giây","100 giây","30 giây"], correct: 0 },
+  { text: "Chia 120 phút thành 4 phần bằng nhau, mỗi phần mấy phút?", options:["30 phút","25 phút","20 phút","35 phút"], correct: 0 },
+  { text: "Chia 90 phút thành 3 phần bằng nhau, mỗi phần mấy phút?", options:["30 phút","25 phút","35 phút","40 phút"], correct: 0 },
+  { text: "Chia 45 phút thành 5 phần bằng nhau, mỗi phần mấy phút?", options:["9 phút","10 phút","8 phút","12 phút"], correct: 0 },
+
+  { text: "Chia 2 giờ thành 2 phần bằng nhau, mỗi phần mấy phút?", options:["60 phút","50 phút","70 phút","45 phút"], correct: 0 },
+  { text: "Chia 3 giờ 30 phút thành 7 phần bằng nhau, mỗi phần mấy phút?", options:["30 phút","25 phút","35 phút","40 phút"], correct: 0 },
+  { text: "Chia 1 giờ 20 phút thành 4 phần bằng nhau, mỗi phần mấy phút?", options:["20 phút","25 phút","15 phút","30 phút"], correct: 0 },
+  { text: "Chia 2 giờ 40 phút thành 8 phần bằng nhau, mỗi phần mấy phút?", options:["20 phút","25 phút","15 phút","30 phút"], correct: 0 },
+  { text: "Chia 90 phút thành 6 phần bằng nhau, mỗi phần mấy phút?", options:["15 phút","20 phút","10 phút","18 phút"], correct: 0 },
+
+  // Vận dụng cộng trừ thời gian
+  { text: "Cộng: 1 giờ 45 phút + 2 giờ 30 phút = ?", options:["4 giờ 15 phút","4 giờ 05 phút","3 giờ 75 phút","4 giờ 10 phút"], correct: 0 },
+  { text: "Trừ: 3 giờ 20 phút – 1 giờ 50 phút = ?", options:["1 giờ 30 phút","1 giờ 25 phút","1 giờ 35 phút","1 giờ 40 phút"], correct: 0 },
+  { text: "Cộng: 2 giờ 15 phút + 1 giờ 50 phút = ?", options:["4 giờ 5 phút","4 giờ 0 phút","3 giờ 65 phút","4 giờ 10 phút"], correct: 0 },
+  { text: "Trừ: 4 giờ 40 phút – 2 giờ 25 phút = ?", options:["2 giờ 15 phút","2 giờ 20 phút","2 giờ 10 phút","2 giờ 05 phút"], correct: 0 },
+  { text: "Cộng: 50 phút + 1 giờ 30 phút = ?", options:["2 giờ 20 phút","2 giờ","2 giờ 10 phút","2 giờ 15 phút"], correct: 0 },
+
+  // Vận dụng nhân thời gian
+  { text: "Nhân: 45 phút × 3 = ?", options:["2 giờ 15 phút","2 giờ","2 giờ 5 phút","2 giờ 10 phút"], correct: 0 },
+  { text: "Nhân: 1 giờ 20 phút × 2 = ?", options:["2 giờ 40 phút","2 giờ 30 phút","2 giờ 50 phút","3 giờ"], correct: 0 },
+  { text: "Nhân: 30 phút × 4 = ?", options:["2 giờ","1 giờ 50 phút","2 giờ 10 phút","2 giờ 5 phút"], correct: 0 },
+  { text: "Nhân: 1 giờ 15 phút × 3 = ?", options:["3 giờ 45 phút","3 giờ 30 phút","4 giờ","3 giờ 50 phút"], correct: 0 },
+  { text: "Nhân: 20 phút × 5 = ?", options:["1 giờ 40 phút","1 giờ 30 phút","1 giờ 50 phút","1 giờ 45 phút"], correct: 0 },
+
+  // Tính vận tốc
+  { text: "Một xe đi 120 km trong 2 giờ. Vận tốc?", options:["60 km/h","50 km/h","70 km/h","40 km/h"], correct: 0 },
+  { text: "Một xe đi 150 km trong 3 giờ. Vận tốc?", options:["50 km/h","40 km/h","60 km/h","55 km/h"], correct: 0 },
+  { text: "Một xe đi 90 km trong 1,5 giờ. Vận tốc?", options:["60 km/h","50 km/h","55 km/h","65 km/h"], correct: 0 },
+  { text: "Một xe đi 80 km trong 2 giờ. Vận tốc?", options:["40 km/h","50 km/h","45 km/h","35 km/h"], correct: 0 },
+  { text: "Một xe đi 180 km trong 4 giờ. Vận tốc?", options:["45 km/h","50 km/h","40 km/h","48 km/h"], correct: 0 },
+
+  { text: "Xe đi 60 km trong 1,5 giờ. Vận tốc?", options:["40 km/h","45 km/h","50 km/h","55 km/h"], correct: 0 },
+  { text: "Xe đi 120 km trong 3 giờ. Vận tốc?", options:["40 km/h","50 km/h","45 km/h","60 km/h"], correct: 0 },
+  { text: "Xe đi 90 km trong 2 giờ. Vận tốc?", options:["45 km/h","50 km/h","40 km/h","48 km/h"], correct: 0 },
+  { text: "Xe đi 150 km trong 3 giờ. Vận tốc?", options:["50 km/h","45 km/h","55 km/h","60 km/h"], correct: 0 },
+  { text: "Xe đi 200 km trong 4 giờ. Vận tốc?", options:["50 km/h","45 km/h","55 km/h","40 km/h"], correct: 0 },
+
+  { text: "Xe đi 75 km trong 1,5 giờ. Vận tốc?", options:["50 km/h","45 km/h","55 km/h","60 km/h"], correct: 0 },
+  { text: "Xe đi 96 km trong 2 giờ. Vận tốc?", options:["48 km/h","50 km/h","46 km/h","45 km/h"], correct: 0 },
+  { text: "Xe đi 180 km trong 3 giờ. Vận tốc?", options:["60 km/h","55 km/h","65 km/h","50 km/h"], correct: 0 },
+  { text: "Xe đi 150 km, vận tốc 75 km/h. Thời gian?", options:["2 giờ","1,5 giờ","2,5 giờ","3 giờ"], correct: 0 },
+  { text: "Xe đi 180 km, vận tốc 90 km/h. Thời gian?", options:["2 giờ","1,5 giờ","2,5 giờ","3 giờ"], correct: 0 }
+],
+/* ===== TUẦN 28: Quãng đường – Thời gian – Vận dụng tính vận tốc ===== */
+week28: [
+  // Bài 84 – Tính quãng đường
+  { text: "Một xe đi với vận tốc 60 km/h trong 2 giờ. Quãng đường?", options:["120 km","100 km","130 km","110 km"], correct: 0 },
+  { text: "Một xe đi với vận tốc 50 km/h trong 3 giờ. Quãng đường?", options:["150 km","140 km","160 km","130 km"], correct: 0 },
+  { text: "Một xe đi 45 km/h trong 4 giờ. Quãng đường?", options:["180 km","170 km","185 km","160 km"], correct: 0 },
+  { text: "Một xe đi 30 km/h trong 5 giờ. Quãng đường?", options:["150 km","140 km","160 km","145 km"], correct: 0 },
+  { text: "Một xe đi 75 km/h trong 2 giờ. Quãng đường?", options:["150 km","140 km","160 km","155 km"], correct: 0 },
+
+  { text: "Một xe đi 80 km/h trong 1,5 giờ. Quãng đường?", options:["120 km","115 km","125 km","130 km"], correct: 0 },
+  { text: "Một xe đi 90 km/h trong 2,5 giờ. Quãng đường?", options:["225 km","220 km","230 km","215 km"], correct: 0 },
+  { text: "Một xe đi 100 km/h trong 1,5 giờ. Quãng đường?", options:["150 km","140 km","160 km","155 km"], correct: 0 },
+  { text: "Một xe đi 55 km/h trong 4 giờ. Quãng đường?", options:["220 km","210 km","225 km","230 km"], correct: 0 },
+  { text: "Một xe đi 65 km/h trong 3 giờ. Quãng đường?", options:["195 km","190 km","200 km","185 km"], correct: 0 },
+
+  // Bài 85 – Tính thời gian
+  { text: "Xe đi 120 km với vận tốc 60 km/h. Thời gian?", options:["2 giờ","1,5 giờ","2,5 giờ","3 giờ"], correct: 0 },
+  { text: "Xe đi 150 km với vận tốc 50 km/h. Thời gian?", options:["3 giờ","2,5 giờ","3,5 giờ","4 giờ"], correct: 0 },
+  { text: "Xe đi 180 km với vận tốc 60 km/h. Thời gian?", options:["3 giờ","2,5 giờ","3,5 giờ","4 giờ"], correct: 0 },
+  { text: "Xe đi 200 km với vận tốc 80 km/h. Thời gian?", options:["2,5 giờ","2 giờ","2,25 giờ","3 giờ"], correct: 0 },
+  { text: "Xe đi 96 km với vận tốc 48 km/h. Thời gian?", options:["2 giờ","1,5 giờ","2,5 giờ","3 giờ"], correct: 0 },
+
+  { text: "Xe đi 225 km với vận tốc 45 km/h. Thời gian?", options:["5 giờ","4,5 giờ","5,5 giờ","6 giờ"], correct: 0 },
+  { text: "Xe đi 300 km với vận tốc 60 km/h. Thời gian?", options:["5 giờ","4,5 giờ","5,5 giờ","6 giờ"], correct: 0 },
+  { text: "Xe đi 150 km với vận tốc 50 km/h. Thời gian?", options:["3 giờ","2,5 giờ","3,5 giờ","4 giờ"], correct: 0 },
+  { text: "Xe đi 120 km với vận tốc 40 km/h. Thời gian?", options:["3 giờ","2,5 giờ","3,5 giờ","4 giờ"], correct: 0 },
+  { text: "Xe đi 180 km với vận tốc 30 km/h. Thời gian?", options:["6 giờ","5,5 giờ","6,5 giờ","7 giờ"], correct: 0 },
+
+  // Bài 86 – Vận dụng tổng hợp
+  { text: "Một xe đi 90 km/h, đi 2 giờ. Quãng đường + 30 km?", options:["210 km","180 km","200 km","190 km"], correct: 0 },
+  { text: "Xe đi 75 km/h, 3 giờ, rồi nghỉ 1 giờ. Tổng thời gian?", options:["4 giờ","3 giờ","3,5 giờ","4,5 giờ"], correct: 0 },
+  { text: "Xe đi 60 km/h 1,5 giờ, rồi 90 km/h 0,5 giờ. Quãng đường?", options:["120 km","100 km","130 km","115 km"], correct: 0 },
+  { text: "Xe đi 150 km, vận tốc 50 km/h, nghỉ 30 phút. Thời gian?", options:["3,5 giờ","3 giờ","4 giờ","3,25 giờ"], correct: 0 },
+  { text: "Xe đi 240 km với vận tốc 60 km/h, dừng nghỉ 1 giờ. Thời gian?", options:["5 giờ","4 giờ","5,5 giờ","4,5 giờ"], correct: 0 },
+
+  { text: "Một xe đi 120 km/h, 2 giờ, sau đó 60 km/h 1 giờ. Quãng đường?", options:["300 km","280 km","250 km","260 km"], correct: 0 },
+  { text: "Một xe đi 80 km/h 1,5 giờ, rồi 40 km/h 2 giờ. Quãng đường?", options:["160 km","150 km","170 km","180 km"], correct: 0 },
+  { text: "Xe đi 100 km/h, 2 giờ, dừng 30 phút. Tổng thời gian?", options:["2,5 giờ","2 giờ","3 giờ","3,5 giờ"], correct: 0 },
+  { text: "Xe đi 90 km/h 1 giờ, 60 km/h 1,5 giờ. Quãng đường?", options:["180 km","160 km","170 km","190 km"], correct: 0 },
+  { text: "Xe đi 120 km, 60 km/h. Sau đó 60 km, 30 km/h. Tổng thời gian?", options:["4 giờ","3,5 giờ","3 giờ","4,5 giờ"], correct: 0 },
+
+  { text: "Xe đi 150 km/h 1 giờ, 60 km/h 2 giờ. Quãng đường?", options:["270 km","280 km","250 km","260 km"], correct: 0 },
+  { text: "Xe đi 60 km/h 2 giờ, nghỉ 30 phút, sau đó 80 km/h 1,5 giờ. Tổng quãng đường?", options:["260 km","250 km","270 km","240 km"], correct: 0 },
+  { text: "Xe đi 90 km/h 1 giờ 30 phút, sau đó 60 km/h 1 giờ. Quãng đường?", options:["195 km","180 km","200 km","190 km"], correct: 0 },
+  { text: "Xe đi 75 km/h 2 giờ, nghỉ 30 phút, rồi 60 km/h 1 giờ. Tổng thời gian?", options:["3,5 giờ","3 giờ","4 giờ","4,5 giờ"], correct: 0 }
+],
+/* ===== TUẦN 29: Ôn tập vận tốc, quãng đường, thời gian – Số tự nhiên – Phân số ===== */
+week29: [
+  // Bài 86 – Vận dụng vận tốc, quãng đường, thời gian
+  { text: "Xe đi 120 km/h 1,5 giờ, sau đó 60 km/h 1 giờ. Tổng quãng đường?", options:["240 km","230 km","250 km","245 km"], correct: 0 },
+  { text: "Xe đi 80 km/h 2 giờ, nghỉ 30 phút, rồi 60 km/h 1,5 giờ. Tổng quãng đường?", options:["230 km","220 km","240 km","225 km"], correct: 0 },
+  { text: "Xe đi 90 km/h 1 giờ, 60 km/h 2 giờ. Tổng quãng đường?", options:["210 km","200 km","220 km","215 km"], correct: 0 },
+  { text: "Xe đi 100 km/h 2 giờ, dừng 30 phút. Thời gian?", options:["2,5 giờ","2 giờ","3 giờ","3,5 giờ"], correct: 0 },
+  { text: "Xe đi 120 km/h 1 giờ, 60 km/h 1,5 giờ. Thời gian?", options:["2,5 giờ","2 giờ","3 giờ","3,5 giờ"], correct: 0 },
+  
+  { text: "Xe đi 150 km/h 1 giờ, 75 km/h 2 giờ. Tổng quãng đường?", options:["300 km","280 km","320 km","310 km"], correct: 0 },
+  { text: "Xe đi 60 km/h 3 giờ, nghỉ 1 giờ, đi tiếp 80 km/h 2 giờ. Tổng thời gian?", options:["6 giờ","5,5 giờ","6,5 giờ","5 giờ"], correct: 0 },
+  { text: "Xe đi 90 km/h 2 giờ, sau đó 60 km/h 1 giờ. Tổng quãng đường?", options:["240 km","230 km","250 km","245 km"], correct: 0 },
+  { text: "Xe đi 75 km/h 1,5 giờ, 50 km/h 2 giờ. Tổng quãng đường?", options:["225 km","230 km","220 km","240 km"], correct: 0 },
+  { text: "Xe đi 120 km trong 2 giờ, rồi nghỉ 30 phút. Thời gian?", options:["2,5 giờ","2 giờ","3 giờ","3,5 giờ"], correct: 0 },
+
+  // Bài 87 – Ôn tập số tự nhiên
+  { text: "Tính: 234 + 567 =", options:["801","800","802","811"], correct: 0 },
+  { text: "Tính: 1000 – 457 =", options:["543","544","533","550"], correct: 0 },
+  { text: "Tính: 45 × 12 =", options:["540","550","560","530"], correct: 0 },
+  { text: "Tính: 360 ÷ 12 =", options:["30","25","35","32"], correct: 0 },
+  { text: "So sánh: 678 ___ 687", options:["<",">","=","không thể so sánh"], correct: 0 },
+  
+  { text: "Sắp xếp tăng dần: 345, 234, 456", options:["234, 345, 456","345, 234, 456","456, 345, 234","234, 456, 345"], correct: 0 },
+  { text: "Số nào lớn hơn: 789 hay 798?", options:["798","789","Bằng nhau","Không xác định"], correct: 0 },
+  { text: "Tính: 123 + 456 – 78 =", options:["501","502","503","500"], correct: 0 },
+  { text: "Tính: 900 – 345 + 123 =", options:["678","677","679","680"], correct: 0 },
+  { text: "Tính nhanh: 25 × 16 =", options:["400","410","390","420"], correct: 0 },
+
+  // Bài 88 – Ôn tập phân số
+  { text: "Rút gọn: 12/16 =", options:["3/4","2/3","4/5","3/5"], correct: 0 },
+  { text: "Cộng: 2/5 + 1/5 =", options:["3/5","1/5","2/5","4/5"], correct: 0 },
+  { text: "Trừ: 7/8 – 3/8 =", options:["4/8","1/2","3/4","5/8"], correct: 0 },
+  { text: "Nhân: 2/3 × 3/4 =", options:["1/2","1/3","1/4","2/3"], correct: 0 },
+  { text: "Chia: 3/5 ÷ 3/4 =", options:["4/5","5/4","1/2","3/4"], correct: 0 },
+
+  { text: "So sánh: 2/3 ___ 3/4", options:["<",">","=","không thể so sánh "], correct: 0 },
+  { text: "Cộng: 5/6 + 1/3 =", options:["7/6","6/6","5/6","8/6"], correct: 0 },
+  { text: "Trừ: 4/5 – 2/10 =", options:["6/10","2/5","3/5","4/10"], correct: 0 },
+  { text: "Nhân: 7/8 × 2/3 =", options:["7/12","1/2","3/4","14/24"], correct: 0 },
+  { text: "Chia: 5/6 ÷ 2/3 =", options:["1 1/4","1 1/3","5/4","3/2"], correct: 0 }
+],
+/* ===== TUẦN 30: Ôn tập số thập phân và phép cộng, trừ ===== */
+week30: [
+  // Bài 89 – Ôn tập số thập phân
+  { text: "Viết 3,25 dưới dạng phân số thập phân:", options:["3,25","325/100","352/100","3,025"], correct: 0 },
+  { text: "Sắp xếp tăng dần: 2,5; 2,05; 2,55", options:["2,05; 2,5; 2,55","2,5; 2,05; 2,55","2,55; 2,5; 2,05","2,05; 2,55; 2,5"], correct: 0 },
+  { text: "So sánh: 0,75 ___ 0,705", options:[">","<","=","không thể so sánh"], correct: 0 },
+  { text: "Viết 4,2 + 3,05 =", options:["7,25","7,2","7,15","7,3"], correct: 0 },
+  { text: "Viết 6,7 – 2,35 =", options:["4,35","4,45","4,25","4,3"], correct: 0 },
+
+  { text: "Tính: 0,8 + 0,25 =", options:["1,05","1,0","1,1","0,95"], correct: 0 },
+  { text: "Tính: 1,5 – 0,75 =", options:["0,75","0,85","0,7","0,8"], correct: 0 },
+  { text: "Số thập phân nào lớn nhất: 3,4; 3,04; 3,44", options:["3,44","3,4","3,04","Bằng nhau"], correct: 0 },
+  { text: "Tính: 2,05 + 3,1 =", options:["5,15","5,05","5,2","5,1"], correct: 0 },
+  { text: "Tính: 4,2 – 1,55 =", options:["2,65","2,6","2,7","2,5"], correct: 0 },
+
+  // Bài 90 – Ôn tập phép cộng
+  { text: "Tính: 12,5 + 3,75 =", options:["16,25","16,5","16,2","15,5"], correct: 0 },
+  { text: "Tính: 4,08 + 2,4 =", options:["6,48","6,5","6,4","6,38"], correct: 0 },
+  { text: "Tính: 0,75 + 0,25 =", options:["1","0,95","1,05","0,9"], correct: 0 },
+  { text: "Tính: 5,6 + 3,09 =", options:["8,69","8,6","9","7,69"], correct: 0 },
+  { text: "Tính: 1,205 + 3,4 =", options:["4,605","4,5","4,45","4,405"], correct: 0 },
+
+  { text: "Tính: 9,06 + 0,94 =", options:["10","10,1","9,9","9,96"], correct: 0 },
+  { text: "Tính: 0,48 + 0,52 =", options:["1","0,9","0,95","0,5"], correct: 0 },
+  { text: "Giá trị biểu thức: 2,4 + 3,6 – 1,5 =", options:["4,5","4,6","4,4","5"], correct: 0 },
+  { text: "Tính: (5,4 – 2,4) + 1,3 =", options:["4,3","4","3,9","5,1"], correct: 0 },
+  { text: "Tính: (4,08 – 1,3) + 0,22 =", options:["3","3,1","2,9","3,2"], correct: 0 },
+
+  // Bài 90 – Ôn tập phép trừ
+  { text: "Tính: 7,4 – 2,6 =", options:["4,8","4,7","5","3,8"], correct: 0 },
+  { text: "Tính: 3,05 – 1,2 =", options:["1,85","2,15","2","1,8"], correct: 0 },
+  { text: "Tính: 8 – 3,45 =", options:["4,55","5,65","4,5","4,6"], correct: 0 },
+  { text: "Tính: 6,0 – 2,75 =", options:["3,25","3,3","4,25","2,25"], correct: 0 },
+  { text: "Tính: 12,5 – 0,8 =", options:["11,7","12,3","11,8","11,6"], correct: 0 },
+
+  { text: "Tính: 5,38 – 2,07 =", options:["3,31","3,3","3,41","3,28"], correct: 0 },
+  { text: "Giá trị biểu thức: 9 – (2,47 + 3,53) =", options:["3","2,9","3,1","4"], correct: 0 },
+  { text: "Một cửa hàng bán 2,5 kg cam và 1,75 kg táo. Tổng số kg là:", options:["4,25 kg","4 kg","3,75 kg","2,75 kg"], correct: 0 },
+  { text: "Một thùng có 5 lít nước. Rót ra 1,8 lít. Còn lại:", options:["3,2 l","3 l","3,18 l","2,8 l"], correct: 0 },
+  { text: "Hai đoạn dây dài 3,4 m và 2,75 m. Tổng độ dài:", options:["6,15 m","6,2 m","5,95 m","6,1 m"], correct: 0 }
+],
+/* ===== TUẦN 31: Ôn tập phép nhân và phép chia (cấp độ nâng cao) ===== */
+week31: [
+  // Phép nhân – số lớn và số thập phân
+  { text: "Tính: 124 × 36 =", options:["4464","4540","4434","4500"], correct: 0 },
+  { text: "Tính: 78 × 145 =", options:["11310","11210","11320","11400"], correct: 0 },
+  { text: "Tính: 0,75 × 36,8 =", options:["27,6","28,0","27,5","28,2"], correct: 0 },
+  { text: "Tính: 12,35 × 4,8 =", options:["59,28","59,20","58,28","59,18"], correct: 0 },
+  { text: "Tính: 3,125 × 12,4 =", options:["38,75","38,85","39","38,65"], correct: 0 },
+
+  { text: "Tính: 0,625 × 48,32 =", options:["30,2","30,15","30,25","30,3"], correct: 0 },
+  { text: "Tính: 123,4 × 5,6 =", options:["691,04","690,04","692,04","693,04"], correct: 0 },
+  { text: "Tính: 7,25 × 6,4 =", options:["46,4","46,5","46,2","46"], correct: 0 },
+  { text: "Tính: 0,48 × 125,6 =", options:["60,288","60,28","60,38","60,18"], correct: 0 },
+  { text: "Tính: 15,75 × 12,4 =", options:["195,3","195,0","196,3","194,3"], correct: 0 },
+
+  // Phép chia – số lớn và số thập phân
+  { text: "Tính: 456 ÷ 12 =", options:["38","37","39","36"], correct: 0 },
+  { text: "Tính: 912 ÷ 24 =", options:["38","37","39","36"], correct: 0 },
+  { text: "Tính: 625 ÷ 0,25 =", options:["2500","2400","2600","2550"], correct: 0 },
+  { text: "Tính: 48,32 ÷ 0,8 =", options:["60,4","60,2","60,3","60,5"], correct: 0 },
+  { text: "Tính: 69,12 ÷ 0,48 =", options:["144","145","143","146"], correct: 0 },
+
+  { text: "Tính: 123,6 ÷ 0,6 =", options:["206","205,6","207","204"], correct: 0 },
+  { text: "Tính: 0,84 ÷ 0,07 =", options:["12","11,5","12,5","11"], correct: 0 },
+  { text: "Tính: 7,875 ÷ 0,25 =", options:["31,5","31,0","32","30,5"], correct: 0 },
+  { text: "Tính: 96 ÷ 0,4 =", options:["240","240,5","239,5","245"], correct: 0 },
+  { text: "Tính: 125 ÷ 0,25 =", options:["500","495","505","490"], correct: 0 },
+
+  // Tổng hợp nhiều bước
+  { text: "Tính: (124 × 3,5) ÷ 7 =", options:["62","61,5","63","62,5"], correct: 0 },
+  { text: "Tính: (0,75 × 48) ÷ 3 =", options:["12","11,5","12,5","11,8"], correct: 0 },
+  { text: "Tính: (456 ÷ 12) × 7 =", options:["266","266,5","264","265"], correct: 0 },
+  { text: "Tính: (123,6 ÷ 0,6) – 100 =", options:["106","105,6","107","104"], correct: 0 },
+  { text: "Tính: (69,12 ÷ 0,48) + 56 =", options:["200","199","201","198"], correct: 0 },
+
+  { text: "Tính: 7,25 × 6,4 ÷ 2,5 =", options:["18,56","18,5","18,6","18,4"], correct: 0 },
+  { text: "Tính: (0,625 × 48,32) ÷ 4 =", options:["7,55","7,56","7,57","7,54"], correct: 0 },
+  { text: "Tính: 912 ÷ 24 × 3,5 =", options:["133,0","133,5","134","132,5"], correct: 0 },
+  { text: "Tính: 15,75 × 12,4 ÷ 7 =", options:["27,9","27,8","28","27,7"], correct: 0 },
+  { text: "Tính: (125 ÷ 0,25) ÷ 5 =", options:["100","101","99","102"], correct: 0 }
+],
+/* ===== TUẦN 32: Ôn tập phép nhân, phép chia, hình học và đo lường ===== */
+week32: [
+  // Bài 93 – Ôn tập phép nhân, phép chia (nâng cao)
+  { text: "Tính: 256 × 34 =", options:["8704","8744","8600","8604"], correct: 0 },
+  { text: "Tính: 78 × 145 =", options:["11310","11210","11400","11320"], correct: 0 },
+  { text: "Tính: 0,625 × 48,32 =", options:["30,2","30,25","30,15","30,3"], correct: 0 },
+  { text: "Tính: 123,6 ÷ 0,6 =", options:["206","205,6","207","204"], correct: 0 },
+  { text: "Tính: 7,875 ÷ 0,25 =", options:["31,5","31","32","30,5"], correct: 0 },
+
+  { text: "Tính: (124 × 3,5) ÷ 7 =", options:["62","61,5","63","62,5"], correct: 0 },
+  { text: "Tính: (0,75 × 48) ÷ 3 =", options:["12","11,5","12,5","11,8"], correct: 0 },
+  { text: "Tính: (69,12 ÷ 0,48) + 56 =", options:["200","199","201","198"], correct: 0 },
+  { text: "Tính: 15,75 × 12,4 ÷ 7 =", options:["27,9","27,8","28","27,7"], correct: 0 },
+  { text: "Tính: (125 ÷ 0,25) ÷ 5 =", options:["100","101","99","102"], correct: 0 },
+  { text: "Tính: 12 × 5 =", options:["60","55","65","50"], correct: 0 },
+{ text: "Chu vi hình vuông cạnh 6 cm =", options:["24 cm","25 cm","23 cm","26 cm"], correct: 0 },
+{ text: "Một bình có 2 l nước, rót ra 0,75 l. Còn lại:", options:["1,25 l","1,2 l","1,3 l","1,5 l"], correct: 0 },
+
+
+  // Bài 94 – Ôn tập hình phẳng và hình khối
+  { text: "Diện tích hình chữ nhật: dài 12 cm, rộng 7 cm =", options:["84 cm²","82 cm²","80 cm²","86 cm²"], correct: 0 },
+  { text: "Chu vi hình vuông cạnh 9 cm =", options:["36 cm","35 cm","34 cm","37 cm"], correct: 0 },
+  { text: "Diện tích tam giác đáy 10 cm, chiều cao 8 cm =", options:["40 cm²","42 cm²","38 cm²","44 cm²"], correct: 0 },
+  { text: "Thể tích hình lập phương cạnh 5 cm =", options:["125 cm³","120 cm³","130 cm³","135 cm³"], correct: 0 },
+  { text: "Thể tích hình hộp chữ nhật: dài 8 cm, rộng 5 cm, cao 3 cm =", options:["120 cm³","115 cm³","125 cm³","130 cm³"], correct: 0 },
+
+  { text: "Diện tích xung quanh hình trụ: r=3 cm, h=10 cm (π=3,14) =", options:["188,4 cm²","180 cm²","190 cm²","185 cm²"], correct: 0 },
+  { text: "Diện tích hình tam giác vuông: đáy 6 cm, cao 8 cm =", options:["24 cm²","25 cm²","26 cm²","23 cm²"], correct: 0 },
+  { text: "Chu vi hình thang: đáy lớn 10 cm, đáy nhỏ 6 cm, hai cạnh bên 5 cm mỗi cạnh =", options:["26 cm","25 cm","27 cm","28 cm"], correct: 0 },
+  { text: "Diện tích hình thang: đáy lớn 12 cm, đáy nhỏ 8 cm, chiều cao 5 cm =", options:["50 cm²","48 cm²","52 cm²","51 cm²"], correct: 0 },
+ { text: "Một hình lập phương có mấy cạnh?", options:["12","10","8","6"], correct: 0 },
+  { text: "Một hình lập phương có mấy mặt?", options:["6","8","12","10"], correct: 0 },
+  { text: "Một hình lập phương có mấy đỉnh?", options:["8","6","10","12"], correct: 0 },
+  { text: "Một hình hộp chữ nhật có mấy cạnh?", options:["12","10","8","6"], correct: 0 },
+  { text: "Một hình hộp chữ nhật có mấy mặt?", options:["6","8","10","12"], correct: 0 },
+  { text: "Một hình hộp chữ nhật có mấy đỉnh?", options:["8","6","10","12"], correct: 0 },
+  { text: "Diện tích xung quanh hình lập phương cạnh 5 cm =", options:["100 cm²","125 cm²","90 cm²","110 cm²"], correct: 0 },
+  { text: "Diện tích toàn phần hình lập phương cạnh 6 cm =", options:["216 cm²","200 cm²","210 cm²","220 cm²"], correct: 0 },
+  { text: "Thể tích hình lập phương cạnh 4 cm =", options:["64 cm³","60 cm³","68 cm³","70 cm³"], correct: 0 },
+  { text: "Diện tích xung quanh hình hộp chữ nhật: dài 8 cm, rộng 5 cm, cao 3 cm =", options:["102 cm²","100 cm²","105 cm²","110 cm²"], correct: 0 },
+  { text: "Diện tích toàn phần hình hộp chữ nhật: dài 6 cm, rộng 4 cm, cao 3 cm =", options:["132 cm²","120 cm²","130 cm²","135 cm²"], correct: 0 },
+  { text: "Thể tích hình hộp chữ nhật: dài 7 cm, rộng 5 cm, cao 4 cm =", options:["140 cm³","145 cm³","150 cm³","135 cm³"], correct: 0 },
+  { text: "Diện tích xung quanh hình hộp chữ nhật: dài 10 cm, rộng 6 cm, cao 5 cm =", options:["220 cm²","210 cm²","225 cm²","230 cm²"], correct: 0 },
+  { text: "Diện tích toàn phần hình lập phương cạnh 7 cm =", options:["294 cm²","280 cm²","300 cm²","310 cm²"], correct: 0 },
+  { text: "Thể tích hình lập phương cạnh 9 cm =", options:["729 cm³","700 cm³","730 cm³","740 cm³"], correct: 0 },
+  // Bài 95 – Ôn tập đo lường, tiền Việt Nam
+  { text: "1 km = ? m", options:["1000","100","10","10000"], correct: 0 },
+  { text: "2,5 kg + 1,75 kg =", options:["4,25 kg","4 kg","3,75 kg","2,75 kg"], correct: 0 },
+  { text: "Một bình có 5 l nước, rót ra 1,8 l. Còn lại:", options:["3,2 l","3 l","3,18 l","2,8 l"], correct: 0 },
+  { text: "Nhiệt độ ngoài trời 28°C, giảm 5°C còn:", options:["23°C","22°C","24°C","21°C"], correct: 0 },
+  { text: "1 triệu đồng = ? nghìn đồng", options:["1000","100","10000","100000"], correct: 0 },
+  { text: "Tính tổng tiền:  25000 đồng x 3 =", options:["75000 đồng","70000 đồng","80000 đồng","76000 đồng"], correct: 0 },
+  { text: "Tính tiền còn lại: 100000 đồng – 34500 đồng =", options:["65500 đồng","65000 đồng","66000 đồng","64500 đồng"], correct: 0 },
+  { text: "Một chai nước 1,25 l, hai chai là:", options:["2,5 l","2,45 l","2,6 l","2,55 l"], correct: 0 },
+  { text: "Một hộp sữa 0,85 l, uống 0,25 l, còn lại:", options:["0,6 l","0,65 l","0,7 l","0,55 l"], correct: 0 },
+  { text: "Chuyển 3,2 m² sang cm² =", options:["32000 cm²","3200 cm²","30000 cm²","33000 cm²"], correct: 0 }
+],
+/* ===== TUẦN 33: Ôn tập chu vi, diện tích, thể tích ===== */
+week33: [
+  // Nhóm 1: Chu vi, diện tích hình phẳng (15 câu)
+  { text: "Chu vi hình vuông cạnh 6 cm =", options:["24 cm","22 cm","25 cm","26 cm"], correct: 0 },
+  { text: "Chu vi hình chữ nhật: dài 8 cm, rộng 5 cm =", options:["26 cm","25 cm","27 cm","28 cm"], correct: 0 },
+  { text: "Diện tích hình vuông cạnh 7 cm =", options:["49 cm²","48 cm²","50 cm²","46 cm²"], correct: 0 },
+  { text: "Diện tích hình chữ nhật: dài 12 cm, rộng 5 cm =", options:["60 cm²","55 cm²","65 cm²","58 cm²"], correct: 0 },
+  { text: "Diện tích tam giác đáy 10 cm, cao 8 cm =", options:["40 cm²","42 cm²","38 cm²","44 cm²"], correct: 0 },
+  { text: "Diện tích hình thang: đáy lớn 12 cm, đáy nhỏ 8 cm, cao 5 cm =", options:["50 cm²","48 cm²","52 cm²","51 cm²"], correct: 0 },
+  { text: "Chu vi hình thang: đáy lớn 10 cm, đáy nhỏ 6 cm, hai cạnh bên 5 cm mỗi cạnh =", options:["26 cm","25 cm","27 cm","28 cm"], correct: 0 },
+  { text: "Diện tích hình tròn: r=7 cm (π=3,14) =", options:["153,86 cm²","150 cm²","155 cm²","154 cm²"], correct: 0 },
+  { text: "Chu vi hình tròn: r=5 cm (π=3,14) =", options:["31,4 cm","30 cm","32 cm","33 cm"], correct: 0 },
+  { text: "Diện tích hình vuông cạnh 9 cm =", options:["81 cm²","80 cm²","85 cm²","78 cm²"], correct: 0 },
+  { text: "Chu vi hình chữ nhật: dài 15 cm, rộng 4 cm =", options:["38 cm","36 cm","40 cm","37 cm"], correct: 0 },
+  { text: "Diện tích hình chữ nhật: dài 9 cm, rộng 3 cm =", options:["27 cm²","28 cm²","30 cm²","26 cm²"], correct: 0 },
+  { text: "Diện tích tam giác đáy 6 cm, cao 5 cm =", options:["15 cm²","16 cm²","14 cm²","17 cm²"], correct: 0 },
+  { text: "Diện tích hình thang: đáy lớn 10 cm, đáy nhỏ 6 cm, cao 4 cm =", options:["32 cm²","30 cm²","34 cm²","33 cm²"], correct: 0 },
+  { text: "Chu vi hình thang: đáy lớn 8 cm, đáy nhỏ 5 cm, hai cạnh bên 4 cm mỗi cạnh =", options:["21 cm","22 cm","20 cm","23 cm"], correct: 0 },
+
+  // Nhóm 2: Hình khối – diện tích xung quanh, diện tích toàn phần, thể tích (15 câu)
+  { text: "Một hình lập phương cạnh 5 cm, diện tích xung quanh =", options:["100 cm²","120 cm²","95 cm²","110 cm²"], correct: 0 },
+  { text: "Hình lập phương cạnh 6 cm, diện tích toàn phần =", options:["216 cm²","210 cm²","220 cm²","200 cm²"], correct: 0 },
+  { text: "Thể tích hình lập phương cạnh 4 cm =", options:["64 cm³","60 cm³","65 cm³","70 cm³"], correct: 0 },
+  { text: "Hình hộp chữ nhật: dài 8 cm, rộng 5 cm, cao 3 cm, diện tích xung quanh =", options:["102 cm²","100 cm²","105 cm²","110 cm²"], correct: 0 },
+  { text: "Hình hộp chữ nhật: dài 6 cm, rộng 4 cm, cao 3 cm, diện tích toàn phần =", options:["132 cm²","120 cm²","130 cm²","135 cm²"], correct: 0 },
+  { text: "Thể tích hình hộp chữ nhật: dài 7 cm, rộng 5 cm, cao 4 cm =", options:["140 cm³","145 cm³","150 cm³","135 cm³"], correct: 0 },
+  { text: "Hình lập phương cạnh 7 cm, diện tích xung quanh =", options:["294 cm²","280 cm²","300 cm²","310 cm²"], correct: 0 },
+  { text: "Thể tích hình lập phương cạnh 9 cm =", options:["729 cm³","700 cm³","730 cm³","740 cm³"], correct: 0 },
+  { text: "Hình hộp chữ nhật: dài 10 cm, rộng 6 cm, cao 5 cm, diện tích toàn phần =", options:["220 cm²","210 cm²","225 cm²","230 cm²"], correct: 0 },
+  { text: "Hình hộp chữ nhật: dài 12 cm, rộng 4 cm, cao 3 cm, diện tích xung quanh =", options:["132 cm²","130 cm²","135 cm²","140 cm²"], correct: 0 },
+  { text: "Hình lập phương cạnh 8 cm, thể tích =", options:["512 cm³","500 cm³","520 cm³","530 cm³"], correct: 0 },
+  { text: "Hình lập phương cạnh 5 cm, diện tích toàn phần =", options:["150 cm²","125 cm²","145 cm²","155 cm²"], correct: 0 },
+  { text: "Hình hộp chữ nhật: dài 9 cm, rộng 6 cm, cao 4 cm, diện tích xung quanh =", options:["108 cm²","100 cm²","110 cm²","105 cm²"], correct: 0 },
+  { text: "Thể tích hình hộp chữ nhật: dài 8 cm, rộng 5 cm, cao 6 cm =", options:["240 cm³","230 cm³","245 cm³","250 cm³"], correct: 0 },
+  { text: "Hình lập phương cạnh 10 cm, diện tích toàn phần =", options:["600 cm²","580 cm²","610 cm²","620 cm²"], correct: 0 },
+
+  // Nhóm 3: Đo lường – độ dài, khối lượng, dung tích, nhiệt độ, tiền Việt Nam (10 câu)
+  { text: "1 km = ? m", options:["1000","100","10","10000"], correct: 0 },
+  { text: "2,5 kg + 1,75 kg =", options:["4,25 kg","4 kg","3,75 kg","2,75 kg"], correct: 0 },
+  { text: "Một bình có 5 l nước, rót ra 1,8 l. Còn lại:", options:["3,2 l","3 l","3,18 l","2,8 l"], correct: 0 },
+  { text: "Nhiệt độ ngoài trời 28°C, giảm 5°C còn:", options:["23°C","22°C","24°C","21°C"], correct: 0 },
+  { text: "1 triệu đồng = ? nghìn đồng", options:["1000","100","10000","100000"], correct: 0 },
+  { text: "Tính tổng tiền: 3 x 25000 đồng =", options:["75000 đồng","70000 đồng","80000 đồng","76000 đồng"], correct: 0 },
+  { text: "Tính tiền còn lại: 100000 đồng – 34500 đồng =", options:["65500 đồng","65000 đồng","66000 đồng","64500 đồng"], correct: 0 },
+  { text: "Một chai nước 1,25 l, hai chai là:", options:["2,5 l","2,45 l","2,6 l","2,55 l"], correct: 0 },
+  { text: "Một hộp sữa 0,85 l, uống 0,25 l, còn lại:", options:["0,6 l","0,65 l","0,7 l","0,55 l"], correct: 0 },
+  { text: "Chuyển 3,2 m² sang cm² =", options:["32000 cm²","3200 cm²","30000 cm²","33000 cm²"], correct: 0 }
+],
+/* ===== TUẦN 34: Ôn tập số đo thời gian, vận tốc, quãng đường, xác suất ===== */
+week34: [
+  // Nhóm 1: Số đo thời gian – phép tính (15 câu)
+  { text: "Tính: 2 giờ 30 phút + 1 giờ 45 phút =", options:["4 giờ 15 phút","4 giờ 10 phút","4 giờ 20 phút","4 giờ 5 phút"], correct: 0 },
+  { text: "Tính: 3 giờ 20 phút – 1 giờ 50 phút =", options:["1 giờ 30 phút","1 giờ 25 phút","1 giờ 35 phút","1 giờ 20 phút"], correct: 0 },
+  { text: "Tính: 2,5 giờ × 2 =", options:["5 giờ","4,5 giờ","6 giờ","5,5 giờ"], correct: 0 },
+  { text: "Tính: 4,8 giờ ÷ 3 =", options:["1,6 giờ","1,5 giờ","1,7 giờ","1,8 giờ"], correct: 0 },
+  { text: "Một sự kiện kéo dài 1 giờ 40 phút. Kết thúc sau 2 sự kiện như vậy là:", options:["3 giờ 20 phút","3 giờ 10 phút","3 giờ 30 phút","3 giờ 15 phút"], correct: 0 },
+  { text: "Tổng thời gian hai chuyến đi: 2 giờ 15 phút và 3 giờ 40 phút =", options:["5 giờ 55 phút","5 giờ 50 phút","5 giờ 45 phút","6 giờ"], correct: 0 },
+  { text: "Một học sinh học 45 phút mỗi ngày. Học 5 ngày là:", options:["3 giờ 45 phút","3 giờ 30 phút","3 giờ 50 phút","4 giờ"], correct: 0 },
+  { text: "Một vận động viên chạy 12 km trong 1,5 giờ. Tính vận tốc trung bình (km/giờ) =", options:["8 km/h","7,5 km/h","9 km/h","8,5 km/h"], correct: 0 },
+  { text: "Quãng đường 30 km, chạy với vận tốc 6 km/h. Thời gian đi là:", options:["5 giờ","4,5 giờ","5,5 giờ","6 giờ"], correct: 0 },
+  { text: "Một xe đi 2,5 giờ với vận tốc 20 km/h. Quãng đường đi được:", options:["50 km","45 km","55 km","48 km"], correct: 0 },
+  { text: "Nếu chạy 15 km mất 3 giờ, chạy 25 km mất bao lâu (giữ cùng tốc độ)?", options:["5 giờ","4,5 giờ","5,5 giờ","6 giờ"], correct: 0 },
+  { text: "Tổng thời gian đi và về: 1 giờ 20 phút + 1 giờ 35 phút =", options:["2 giờ 55 phút","2 giờ 50 phút","2 giờ 45 phút","3 giờ"], correct: 0 },
+  { text: "Chia 2 giờ 30 phút đều cho 5 người. Mỗi người được:", options:["30 phút","25 phút","35 phút","40 phút"], correct: 0 },
+  { text: "Một chuyến đi dài 120 km. Xe chạy 40 km/h. Thời gian đi là:", options:["3 giờ","2,5 giờ","3,5 giờ","2 giờ"], correct: 0 },
+  { text: "Một người đi bộ 1,2 km trong 15 phút. Tính vận tốc trung bình (km/h) =", options:["4,8 km/h","4,5 km/h","5 km/h","4 km/h"], correct: 0 },
+
+  // Nhóm 2: Quãng đường, vận tốc, thời gian – bài toán vận dụng (15 câu)
+  { text: "Xe A đi 60 km trong 2 giờ. Xe B đi 90 km trong 3 giờ. Xe nào nhanh hơn?", options:["Cả hai bằng nhau","Xe A nhanh hơn","Xe B nhanh hơn","Không xác định"], correct: 0 },
+  { text: "Một ô tô đi 150 km với vận tốc 50 km/h. Thời gian đi là:", options:["3 giờ","2,5 giờ","3,5 giờ","4 giờ"], correct: 0 },
+  { text: "Một tàu đi 120 km mất 2,5 giờ. Vận tốc trung bình là:", options:["48 km/h","50 km/h","45 km/h","46 km/h"], correct: 0 },
+  { text: "Người đi xe đạp 15 km mất 1 giờ 15 phút. Tính vận tốc trung bình:", options:["12 km/h","11 km/h","10 km/h","13 km/h"], correct: 0 },
+  { text: "Một xe đi 90 km mất 1,5 giờ. Tính quãng đường xe đi trong 2 giờ với cùng vận tốc:", options:["120 km","110 km","115 km","125 km"], correct: 0 },
+  { text: "Chia đều 3 giờ 45 phút cho 5 người đi cùng, mỗi người đi được bao lâu?", options:["45 phút","40 phút","50 phút","42 phút"], correct: 0 },
+  { text: "Xe đi 120 km/h, thời gian đi 2,5 giờ. Quãng đường đi được:", options:["300 km","280 km","310 km","290 km"], correct: 0 },
+  { text: "Một vận động viên chạy 10 km trong 50 phút. Tính vận tốc km/h:", options:["12 km/h","10 km/h","11 km/h","13 km/h"], correct: 0 },
+  { text: "Một xe chạy 90 km với vận tốc 30 km/h, tiếp theo 60 km với vận tốc 20 km/h. Thời gian tổng cộng:", options:["6 giờ","5 giờ","6,5 giờ","5,5 giờ"], correct: 0 },
+  { text: "Quãng đường đi 45 km, vận tốc 15 km/h. Thời gian đi:", options:["3 giờ","2,5 giờ","3,5 giờ","4 giờ"], correct: 0 },
+  { text: "Một xe đi 150 km mất 3 giờ. Xe khác đi 200 km mất 4 giờ. Xe nào nhanh hơn?", options:["Cả hai bằng nhau","Xe 1 nhanh hơn","Xe 2 nhanh hơn","Không xác định"], correct: 0 },
+  { text: "Một học sinh đi bộ 2 km trong 25 phút. Vận tốc trung bình:", options:["4,8 km/h","5 km/h","4,5 km/h","4 km/h"], correct: 0 },
+  { text: "Xe đi 240 km mất 4 giờ, quãng đường đi được sau 1,5 giờ là:", options:["90 km","80 km","85 km","100 km"], correct: 0 },
+  { text: "Một người chạy 10 km với vận tốc 5 km/h, mất bao lâu?", options:["2 giờ","1,5 giờ","2,5 giờ","1 giờ 45 phút"], correct: 0 },
+  { text: "Một xe đi 75 km mất 1,5 giờ. Tính vận tốc:", options:["50 km/h","45 km/h","48 km/h","52 km/h"], correct: 0 },
+
+  // Nhóm 3: Xác suất – cơ bản (10 câu)
+  { text: "Một túi có 3 bi đỏ, 2 bi xanh. Xác suất rút ra bi đỏ là:", options:["3/5","2/5","1/2","2/3"], correct: 0 },
+  { text: "Một túi có 4 bi trắng, 1 bi đen. Xác suất rút ra bi đen là:", options:["1/5","1/4","1/2","2/5"], correct: 0 },
+  { text: "Xác suất tung một đồng xu ra mặt sấp là:", options:["1/2","1/3","1/4","2/3"], correct: 0 },
+  { text: "Một túi có 5 bi đỏ, 3 bi xanh. Xác suất rút bi xanh:", options:["3/8","5/8","1/2","1/3"], correct: 0 },
+  { text: "Xác suất chọn 1 ngày thứ Hai trong tuần là:", options:["1/7","1/6","1/5","1/8"], correct: 0 },
+  { text: "Túi có 2 bi đỏ, 3 bi vàng, 5 bi xanh. Xác suất rút bi vàng:", options:["3/10","2/10","5/10","1/3"], correct: 0 },
+  { text: "Xác suất tung đồng xu ra mặt ngửa là:", options:["1/2","1/3","1/4","2/3"], correct: 0 },
+  { text: "Một túi có 6 viên bi, 2 viên đỏ. Xác suất rút bi đỏ:", options:["1/3","1/4","1/2","2/3"], correct: 0 },
+  { text: "Xác suất chọn 1 ngày cuối tuần (thứ Bảy hoặc Chủ nhật) =", options:["2/7","1/7","2/6","3/7"], correct: 0 },
+  { text: "Một túi có 3 bi đỏ, 4 bi xanh, 3 bi vàng. Xác suất rút bi vàng:", options:["3/10","4/10","3/7","1/3"], correct: 0 }
+],
+/* ===== TUẦN 35: Ôn tập thống kê và tổng hợp các phép tính ===== */
+week35: [
+  // Nhóm 1: Thống kê – nhận biết bảng, biểu đồ, tần số, trung bình (15 câu)
+  { text: "Bảng số liệu: số học sinh đạt điểm 10 là 5, điểm 9 là 8, điểm 8 là 12. Số học sinh cao nhất đạt điểm nào?", options:["8","9","10","7"], correct: 2 },
+  { text: "Biểu đồ thể hiện số học sinh học giỏi: A=5, B=8, C=7. Lớp nào ít học sinh nhất?", options:["A","B","C","Bằng nhau"], correct: 0 },
+  { text: "Tìm giá trị trung bình của các số: 5, 7, 9, 11 =", options:["8","7","9","10"], correct: 0 },
+  { text: "Một lớp có số học sinh 20 nam và 25 nữ. Tổng số học sinh?", options:["45","40","50","42"], correct: 0 },
+  { text: "Tần số của số 7 trong dãy 7,8,7,6,7,9 là:", options:["3","2","4","1"], correct: 0 },
+  { text: "Biểu đồ hình cột: A=6, B=9, C=3. Cột cao nhất là:", options:["B","A","C","Bằng A"], correct: 0 },
+  { text: "Dãy số: 4,5,6,5,4,5. Giá trị trung bình =", options:["4,67","5","5,5","4,5"], correct: 0 },
+  { text: "Số lớn nhất trong dãy 12,15,9,20,18 =", options:["20","18","15","12"], correct: 0 },
+  { text: "Số nhỏ nhất trong dãy 8,12,5,10,7 =", options:["5","7","8","10"], correct: 0 },
+  { text: "Tổng số học sinh lớp A: nam=12, nữ=14. Lớp B: nam=15, nữ=10. Lớp nào đông học sinh hơn?", options:["B","A","Bằng nhau","Không xác định"], correct: 0 },
+  { text: "Dãy số: 2,4,6,8,10. Tần số số chẵn là:", options:["5","4","3","2"], correct: 0 },
+  { text: "Tổng số học sinh đạt điểm 8: 10 nam, 12 nữ. Tổng số?", options:["22","20","24","23"], correct: 0 },
+  { text: "Biểu đồ thể hiện 3 môn: Toán=7, Văn=5, Anh=8. Môn nhiều học sinh nhất?", options:["Anh","Toán","Văn","Bằng nhau"], correct: 0 },
+  { text: "Dãy số: 3,5,7,9,11. Giá trị trung bình là:", options:["7","6","8","7,5"], correct: 0 },
+  { text: "Số lần xuất hiện của 5 trong dãy 5,6,5,7,8,5 là:", options:["3","2","1","4"], correct: 0 },
+
+  // Nhóm 2: Tổng hợp phép tính số tự nhiên (10 câu)
+  { text: "Tính: 245 + 378 =", options:["623","613","625","620"], correct: 0 },
+  { text: "Tính: 984 – 567 =", options:["417","427","407","417"], correct: 0 },
+  { text: "Tính: 125 × 8 =", options:["1000","1020","980","990"], correct: 0 },
+  { text: "Tính: 144 ÷ 12 =", options:["12","11","13","10"], correct: 0 },
+  { text: "Giá trị biểu thức: 250 + 375 – 125 =", options:["500","510","495","505"], correct: 0 },
+  { text: "Tính: 432 × 5 =", options:["2160","2150","2170","2200"], correct: 0 },
+  { text: "Tính: 108 ÷ 9 =", options:["12","11","13","10"], correct: 0 },
+  { text: "Giá trị: (250 + 150) × 2 =", options:["800","750","700","850"], correct: 0 },
+  { text: "Tính nhanh: 500 – 275 =", options:["225","225","230","220"], correct: 0 },
+  { text: "Giá trị: 360 ÷ 12 + 45 =", options:["75","80","70","78"], correct: 0 },
+
+  // Nhóm 3: Tổng hợp phép tính phân số (5 câu)
+  { text: "Tính: 3/4 + 2/5 =", options:["23/20","21/20","25/20","22/20"], correct: 0 },
+  { text: "Tính: 5/6 – 1/3 =", options:["1/2","2/3","1/3","1/4"], correct: 0 },
+  { text: "Tính: 2/3 × 3/4 =", options:["1/2","1/3","2/5","1/4"], correct: 0 },
+  { text: "Tính: 3/5 ÷ 3 =", options:["1/5","1/3","1/4","2/5"], correct: 0 },
+  { text: "Giá trị biểu thức: 2/3 + 1/6 – 1/4 =", options:["7/12","1/2","5/12","2/3"], correct: 0 },
+
+  // Nhóm 4: Tổng hợp phép tính số thập phân (10 câu)
+  { text: "Tính: 2,5 + 3,75 =", options:["6,25","6,5","6,15","6"], correct: 0 },
+  { text: "Tính: 4,2 – 1,35 =", options:["2,85","2,95","3","2,8"], correct: 0 },
+  { text: "Tính: 3,6 × 2 =", options:["7,2","7,5","7,1","8"], correct: 0 },
+  { text: "Tính: 7,2 ÷ 3 =", options:["2,4","2,3","2,5","2,6"], correct: 0 },
+  { text: "Giá trị biểu thức: 5,5 + 2,25 – 1,75 =", options:["6","6,25","5,5","6,5"], correct: 0 },
+  { text: "Tính: 1,25 × 4 =", options:["5","5,5","4,5","4"], correct: 0 },
+  { text: "Tính: 6,3 ÷ 0,9 =", options:["7","6","6,5","7,5"], correct: 0 },
+  { text: "Tính: 2,75 + 3,5 – 1,25 =", options:["5","5,5","4,5","5,25"], correct: 0 },
+  { text: "Tính: 4,8 × 1,5 =", options:["7,2","7","7,5","7,3"], correct: 0 },
+  { text: "Giá trị: 5,6 ÷ 0,8 + 2,4 =", options:["9,4","9,2","9,6","9"], correct: 0 }
+]
+
+
+};
+/* ================
+   UI: generate quiz
+   ================ */
+const qListEl = document.getElementById('qList');
+const weekSel = document.getElementById('week');
+const genBtn = document.getElementById('genBtn');
+const checkBtn = document.getElementById('checkBtn');
+const resetBtn = document.getElementById('resetBtn');
+const scoreText = document.getElementById('scoreText');
+
+// ===== Google Form =====
+const FORM_URL = "https://docs.google.com/forms/u/0/d/e/1FAIpQLSeAk3aJEjS6gFc_qZWDg1prG0Cn2Szgl-7ugsFfZwhQ9zybzQ/formResponse";
+const ENTRY_NAME = "entry.112863490";    // Tên học sinh
+const ENTRY_WEEK = "entry.1116837335";   // Tuần
+const ENTRY_ANSWERS = "entry.1401901485"; // Các đáp án học sinh
+const ENTRY_SCORE = "entry.1403069350";   // Điểm
+function sendToGoogleForm(studentName, week, answersText, score){
+    const data = new URLSearchParams();
+    data.append(ENTRY_NAME, studentName);
+    data.append(ENTRY_WEEK, week);
+    data.append(ENTRY_ANSWERS, answersText);
+    data.append(ENTRY_SCORE, score);
+
+    fetch(FORM_URL, { method: "POST", body: data, mode: "no-cors" })
+      .then(() => console.log("Gửi thành công"))
+      .catch(err => console.error("Lỗi gửi form:", err));
 }
 
-// server.js - simple proxy to OpenAI (Node.js + express)
-// Usage:
-// 1) npm init -y
-// 2) npm install express node-fetch dotenv cors
-// 3) create .env with OPENAI_API_KEY=sk-...
-// 4) node server.js
 
-const express = require('express');
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-const cors = require('cors');
-require('dotenv').config();
+let current = { questions: [], answers: [] };
+let chatEnabled = false; // 🚫 Chat bị khóa lúc đầu
+function generateWeek(week){
+  const key = 'week' + week;
+  let source = templates[key] || templates['week1'];
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-const OPENAI_KEY = process.env.OPENAI_API_KEY;
+  // --- Lấy ngẫu nhiên 10 câu trong danh sách gốc ---
+  const shuffled = [...source].sort(() => Math.random() - 0.5);
+  const selected = shuffled.slice(0, 10);
 
-if (!OPENAI_KEY) {
-  console.error('Vui lòng đặt OPENAI_API_KEY trong file .env');
-  process.exit(1);
-}
-
-app.use(cors()); // cho phép truy cập từ local
-app.use(express.json());
-
-app.post('/api/chat', async (req, res) => {
-  const userMsg = (req.body.message || '').toString().trim();
-  if (!userMsg) return res.status(400).json({ error: 'No message' });
-
-  try {
-    const payload = {
-      model: "gpt-4o-mini",
-      messages: [
-        { role: 'system', content: 'Bạn là trợ lý giáo viên Toán lớp 5, giải thích ngắn gọn, đơn giản, từng bước.' },
-        { role: 'user', content: userMsg }
-      ],
-      max_tokens: 400,
-      temperature: 0.2
-    };
-
-    const apiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (!apiRes.ok) {
-      const txt = await apiRes.text();
-      console.error('OpenAI error:', txt);
-      return res.status(500).json({ error: 'OpenAI error', detail: txt });
+  // --- Với mỗi câu, trộn thứ tự đáp án ---
+  const qs = selected.map((q, idx) => {
+    const arr = q.options.map((o,i)=>({o,i}));
+    for (let i = arr.length -1; i>0; i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
     }
+    const options = arr.map(x=>x.o);
+    const correctIndex = arr.findIndex(x=>x.i === q.correct);
+    return { id: idx+1, text: q.text, options, correct: correctIndex };
+  });
 
-    const j = await apiRes.json();
-    const reply = j.choices && j.choices[0] && j.choices[0].message ? j.choices[0].message.content : 'Xin lỗi, không có phản hồi.';
-    res.json({ reply });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
+  // --- Cập nhật dữ liệu hiện hành ---
+  current.questions = qs;
+  current.answers = new Array(qs.length).fill(null);
+  renderQuestions();
+  updateScore(0, qs.length);
+
+  // Lưu lại vào localStorage để khi load lại vẫn có đề này
+  localStorage.setItem('currentQuiz', JSON.stringify({week, qs}));
+}
+
+function renderQuestions(){
+  qListEl.innerHTML = '';
+  current.questions.forEach((q, qi) => {
+    const el = document.createElement('div'); el.className='question';
+    el.innerHTML = `
+      <div class="q-left">${q.id}</div>
+      <div class="q-body">
+        <div class="q-text">${q.text}</div>
+        <div class="choices" id="choices-${qi}"></div>
+      </div>
+    `;
+    qListEl.appendChild(el);
+    const choicesEl = document.getElementById(`choices-${qi}`);
+    q.options.forEach((opt, oi) => {
+      const btn = document.createElement('div');
+      btn.className='choice';
+      btn.innerText = String.fromCharCode(65+oi) + '. ' + opt;
+      btn.addEventListener('click', ()=> {
+        document.querySelectorAll(`#choices-${qi} .choice`).forEach(c=>c.classList.remove('selected'));
+        btn.classList.add('selected');
+        current.answers[qi] = oi;
+      });
+      choicesEl.appendChild(btn);
+    });
+  });
+}
+
+/* ====================
+   Scoring & persistence
+   ==================== */
+function updateScore(correct, total){
+  scoreText.innerText = `Điểm: ${correct}/${total}`;
+}
+
+function checkAnswers(){
+  let correct = 0;
+  current.questions.forEach((q, i) => {
+    if (current.answers[i] === q.correct) correct++;
+  });
+  updateScore(correct, current.questions.length);
+  const wk = weekSel.value;
+  const history = JSON.parse(localStorage.getItem('history')||'{}');
+  history['week'+wk] = { timestamp: Date.now(), score: correct, total: current.questions.length };
+  localStorage.setItem('history', JSON.stringify(history));
+  alert(`Bạn được ${correct}/${current.questions.length} câu đúng.`);
+}
+function checkAnswers() {
+  let correct = 0;
+
+  current.questions.forEach((q, i) => {
+    const userAns = current.answers[i];
+    const choiceEls = document.querySelectorAll(`#choices-${i} .choice`);
+
+    choiceEls.forEach((btn, oi) => {
+      btn.classList.remove("correct", "incorrect");
+
+      if (oi === q.correct) {
+        // Đáp án đúng → xanh
+        btn.classList.add("correct");
+      } else if (oi === userAns) {
+        // Học sinh chọn sai → đỏ
+        if (userAns !== q.correct) btn.classList.add("incorrect");
+      }
+
+      // Sau khi nộp thì khóa các lựa chọn
+      btn.style.pointerEvents = "none";
+    });
+
+    if (userAns === q.correct) correct++;
+  });
+
+  updateScore(correct, current.questions.length);
+  updateScore(correct, current.questions.length);
+
+// ===== Gửi dữ liệu lên Google Form =====
+const studentName = document.getElementById('studentName').value.trim();
+if (!studentName) return alert("Hãy nhập tên trước khi nộp.");
+
+const week = weekSel.value;
+const answersText = current.answers.map(i => i !== null ? String.fromCharCode(65+i) : "-").join(", ");
+
+sendToGoogleForm(studentName, week, answersText, correct);
+
+  alert(`Bạn được ${correct}/${current.questions.length} câu đúng.`);
+  chatEnabled = true; // ✅ Mở khóa chat sau khi học sinh đã chấm xong
+  // ✨ Hiện thông báo tự ẩn sau 3 giây, không cần bấm OK
+const msg = document.createElement('div');
+msg.innerText = 'Bây giờ em có thể hỏi Trợ lý AI để hiểu thêm nhé!';
+msg.style.position = 'fixed';
+msg.style.bottom = '20px';
+msg.style.right = '20px';
+msg.style.background = '#4caf50';
+msg.style.color = '#fff';
+msg.style.padding = '12px 18px';
+msg.style.borderRadius = '8px';
+msg.style.fontWeight = '600';
+msg.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+msg.style.zIndex = '9999';
+document.body.appendChild(msg);
+setTimeout(() => msg.remove(), 3000);
+}
+
+function resetAll(){
+  if (!confirm('Reset toàn bộ dữ liệu luyện tập trong trình duyệt?')) return;
+  localStorage.removeItem('currentQuiz');
+  localStorage.removeItem('history');
+  current = {questions:[], answers:[]};
+  qListEl.innerHTML = '';
+  updateScore(0,0);
+chatEnabled = false;
+}
+
+/* ====================
+   Load saved set (if any)
+   ==================== */
+window.addEventListener('load', ()=>{
+  const saved = JSON.parse(localStorage.getItem('currentQuiz')||'null');
+  if (saved && saved.qs){
+    current.questions = saved.qs;
+    current.answers = new Array(saved.qs.length).fill(null);
+    renderQuestions();
+    updateScore(0, saved.qs.length);
   }
 });
 
-app.listen(PORT, ()=> console.log(`Proxy server running on http://localhost:${PORT}`));
+/* ================
+   Event listeners
+   ================ */
+genBtn.addEventListener('click', ()=>{
+  const saved = JSON.parse(localStorage.getItem('currentQuiz')||'null');
+  if (saved && saved.week === weekSel.value) {
+    alert('Bộ câu hỏi tuần này đã được tạo. Nếu muốn tạo lại ngẫu nhiên, hãy bấm nút Reset.');
+    return;
+  }
+  generateWeek(weekSel.value);
+});
+
+checkBtn.addEventListener('click', checkAnswers);
+
+resetBtn.addEventListener('click', ()=>{
+  if (!confirm('Tạo lại bộ câu hỏi ngẫu nhiên cho tuần này?')) return;
+  localStorage.removeItem('currentQuiz');
+  generateWeek(weekSel.value);
+    chatEnabled = false; // 🚫 Khóa lại chatbox sau khi reset đề
+});
+
+
+/* ======================
+   Chat integration (frontend)
+   ====================== */
+const API_ENDPOINT = 'https://toan5-chatbot-1.onrender.com/api/chat'; // chỉnh nếu bạn host khác
+
+const chatWindow = document.getElementById('chatWindow');
+const chatText = document.getElementById('chatText');
+const sendChat = document.getElementById('sendChat');
+const clearChat = document.getElementById('clearChat');
+const connState = document.getElementById('connState');
+
+function appendMessage(text, who='assistant'){
+  const msg = document.createElement('div');
+  msg.className = 'msg ' + (who==='user' ? 'user' : 'assistant');
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble ' + (who==='user' ? 'user' : '');
+  bubble.innerText = text;
+  msg.appendChild(bubble);
+  chatWindow.appendChild(msg);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+sendChat.addEventListener('click', async ()=>{
+    const text = chatText.value.trim();
+if (!chatEnabled) {
+    alert('Em hãy làm xong bài và bấm "Nộp & Chấm" trước khi hỏi Trợ lý nhé!');
+    return;
+  } 
+ if (!text) return;
+  appendMessage(text,'user');
+  chatText.value = '';
+  appendMessage('Đang trả lời...','assistant');
+
+  try {
+    const resp = await fetch(API_ENDPOINT, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        message: text,
+        context: current.questions.map(q => ({ id: q.id, text: q.text, options: q.options })),
+        answers: current.answers
+      })
+    });
+    if (!resp.ok) throw new Error('Không thể kết nối tới server chat.');
+    const data = await resp.json();
+    const bubbles = chatWindow.querySelectorAll('.msg.assistant .bubble');
+    if (bubbles.length) bubbles[bubbles.length-1].innerText = data.reply || 'Xin lỗi, tôi không hiểu.';
+    connState.innerText = 'online';
+  } catch(e) {
+    const bubbles = chatWindow.querySelectorAll('.msg.assistant .bubble');
+    if (bubbles.length) bubbles[bubbles.length-1].innerText = 'Lỗi kết nối: ' + e.message;
+    connState.innerText = 'offline';
+  }
+});
+/* ---------- Speech to Text (micro) ---------- */
+const voiceBtn = document.getElementById('voiceBtn');
+const voiceStatus = document.getElementById('voiceStatus');
+let recognition = null;
+
+if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.lang = 'vi-VN';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onstart = () => {
+    voiceStatus.innerText = '🎙️ Đang nghe...';
+    voiceBtn.style.background = '#0288d1';
+    voiceBtn.style.color = '#fff';
+  };
+  recognition.onend = () => {
+    voiceStatus.innerText = '';
+    voiceBtn.style.background = '';
+    voiceBtn.style.color = '';
+  };
+  recognition.onerror = (e) => {
+    voiceStatus.innerText = 'Lỗi micro: ' + e.error;
+  };
+
+  recognition.onresult = (ev) => {
+    const txt = ev.results[0][0].transcript;
+    const chatTextEl = document.getElementById('chatText');
+    chatTextEl.value = chatTextEl.value ? (chatTextEl.value + ' ' + txt) : txt;
+    chatTextEl.focus();
+  };
+} else {
+  voiceStatus.innerText = 'Trình duyệt không hỗ trợ voice input.';
+  voiceBtn.disabled = true;
+}
+
+voiceBtn.addEventListener('click', () => {
+  if (!recognition) return;
+  try { recognition.start(); } catch(e) {}
+});
+/* ---------- Nút Xóa chat & ô nhập ---------- */
+clearChat.addEventListener('click', ()=>{
+  chatWindow.innerHTML = '';  // Xóa khung hội thoại
+  chatText.value = '';        // Xóa nội dung đang gõ
+  voiceStatus.innerText = ''; // Xóa trạng thái ghi âm nếu có
+});
+async function sendMessage() {
+  const input = document.getElementById("chat-input");
+  const message = input.value.trim();
+  if (!message) return;
+  
+  appendMessage("Bạn", message);
+  input.value = "";
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer sk-xxxxxxxxxxxxxxxx", // ⚠️ key thật của bạn
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "Bạn là trợ lý ChatGPT Toán 5." },
+        { role: "user", content: message }
+      ],
+    }),
+  });
+
+  const data = await response.json();
+  const reply = data.choices?.[0]?.message?.content || "Xin lỗi, tôi chưa hiểu câu hỏi.";
+  appendMessage("ChatGPT", reply);
+}
+function selectOption(button, opt) {
+  // Xóa trạng thái chọn cũ
+  document.querySelectorAll(".option-btn").forEach(b => b.classList.remove("selected"));
+  // Đánh dấu nút đang chọn
+  button.classList.add("selected");
+  selectedOption = opt;
+}
+
+submitBtn.addEventListener("click", () => {
+  if (!selectedOption) return alert("Hãy chọn một đáp án!");
+
+  const buttons = document.querySelectorAll(".option-btn");
+  buttons.forEach(btn => {
+    const text = btn.textContent.slice(3); // bỏ A./B./C./D.
+    btn.disabled = true;
+    if (text === currentQuestion.correct) {
+      btn.classList.add("correct");
+    } else if (text === selectedOption) {
+      btn.classList.add("incorrect");
+    }
+  });
+
+  explanationBox.innerHTML = `<strong>Giải thích:</strong> ${currentQuestion.explanation}`;
+  submitBtn.classList.add("hidden");
+});
+
+</script>
+</body>
+</html>
